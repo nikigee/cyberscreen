@@ -6,7 +6,9 @@ import CombatTracker from '@/components/CombatTracker.vue';
     <div class="container text-center pt-2 mb-5">
         <div class="row justify-content-center">
             <!-- For tracking enemies and party members in combat -->
-            <CombatTracker />
+            <div class="col-xl-6">
+                <CombatTracker />
+            </div>
         </div>
     </div>
 </template>

@@ -1,47 +1,51 @@
 <template>
-    <div class="col-xl-6">
-        <h2 class="header_text">HOSTILES</h2>
-        <ul class="list-group list-group-flush">
-            <li v-for="[key, enemy] in enemies" :key="key" class="list-group-item list-group-item-action"
-                v-bind:class="{ 'list-group-item-primary': enemy.currentHP <= 0 }" @click="quickSelect(key)">
-                <div class="row align-items-center text-start">
-                    <div class="col-auto">
-                        <span class="text-muted">ID:</span> {{ key }}
-                    </div>
-                    <div class="col">
-                        [ status: {{ enemy.currentHP <= 0 ? "neutralized" : "alive" }} ]
-                        <div class="fw-bold text-uppercase">{{ enemy.name }}</div>
-                        <span class="text-muted">HP:</span> {{ enemy.currentHP }} / {{ enemy.maxHP }}
-                        ({{
-                            percentage(enemy) }}%)
-                        <span class="text-muted">AC:</span> {{ enemy.ac }}
-                        
-                        <div v-if="enemy.inv.length > 0"><span class="text-muted">INV:</span> {{
-                            enemy.inv.join(", ") }}</div>
+    <h2 class="header_text">敵HOSTILES</h2>
+    <ul class="list-group list-group-flush">
+        <li v-for="[key, enemy] in enemies" :key="key" class="list-group-item list-group-item-action"
+            v-bind:class="{ 'list-group-item-primary': enemy.currentHP <= 0 }" @click="quickSelect(key)">
+            <div class="row align-items-center text-start">
+                <div class="col-auto">
+                    <span class="text-muted">ID:</span> {{ key }}
+                </div>
+                <div class="col">
+                    <div class="d-flex justify-content-between">
+                        <!-- Left side -->
+                        <div>
+                            <span>[ status: {{ getStatus(enemy) }} ]</span>
+                            <div class="fw-bold text-uppercase">{{ enemy.name }}</div>
 
-                        <div v-if="enemy.notes.length > 0" class="text-muted">notes: {{
-                            JSON.stringify(enemy.notes)
-                        }}</div>
+                            <div v-if="enemy.notes.length > 0" class="text-muted">
+                                notes: {{ JSON.stringify(enemy.notes) }}
+                            </div>
+                        </div>
+                        <!-- Right side -->
+                        <div class="text-end">
+                            <div><span class="text-muted">HP:</span> {{ enemy.currentHP }} / {{ enemy.maxHP }} ({{
+                                percentage(enemy) }}%) <span class="text-muted">AC:</span> {{ enemy.ac }}</div>
+                            <div v-if="enemy.inv.length > 0">
+                                <span class="text-muted">inventory:</span> {{ enemy.inv.join(", ") }}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </li>
-            <!-- If no enemies -->
-            <li class="list-group-item list-group-item-action mt-1" v-if="enemies.size == 0">
-                <p class="m-0">Initialize...</p>
-                <p class="m-0">No enemies detected.</p>
-                <p class="m-0 text-muted">hi ฅ^•ﻌ•^ฅ</p>
-                <p class="m-0 text-muted">psst! to begin, type:</p>
-                <p class="m-0 text-muted">enemy add "name" "hp" "ac" "count"</p>
-
-            </li>
-        </ul>
-
-        <div class="justify-content-center">
-            <div class="input-group pt-3">
-                <input type="text" class="form-control command-input" placeholder="Enter command..."
-                    v-model="command" @keyup.enter="processCommand" />
-                <button class="btn btn-outline-primary" @click="processCommand">Run</button>
             </div>
+        </li>
+        <!-- If no enemies -->
+        <li class="list-group-item list-group-item-action mt-1" v-if="enemies.size == 0">
+            <p class="m-0">Initialize...</p>
+            <p class="m-0">No enemies detected.</p>
+            <p class="m-0 text-muted">hi ฅ^•ﻌ•^ฅ</p>
+            <p class="m-0 text-muted">psst! to begin, type:</p>
+            <p class="m-0 text-muted">enemy add "name" "hp" "ac" "count"</p>
+
+        </li>
+    </ul>
+
+    <div class="justify-content-center">
+        <div class="input-group pt-3">
+            <input type="text" class="form-control command-input" placeholder="Enter command..." v-model="command"
+                @keyup.enter="processCommand" />
+            <button class="btn btn-outline-primary" @click="processCommand">Run</button>
         </div>
     </div>
 </template>
@@ -171,5 +175,9 @@ const saveEnemies = () => {
 
 const percentage = (enemy) => {
     return (enemy.currentHP / enemy.maxHP * 100).toFixed(0);
+}
+
+const getStatus = (enemy) => {
+    return (enemy.currentHP <= 0 ? 'neutralized' : 'alive');
 }
 </script>
