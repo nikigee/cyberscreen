@@ -1,5 +1,6 @@
 <script setup>
 import CombatTracker from '@/components/CombatTracker.vue';
+import DiceRoller from '@/components/DiceRoller.vue';
 </script>
 
 <template>
@@ -8,6 +9,9 @@ import CombatTracker from '@/components/CombatTracker.vue';
             <!-- For tracking enemies and party members in combat -->
             <div class="col-xl-6">
                 <CombatTracker />
+            </div>
+            <div class="col-xl-3">
+                <DiceRoller />
             </div>
         </div>
     </div>

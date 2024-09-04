@@ -23,7 +23,7 @@
                             <div><span class="text-muted">HP:</span> {{ enemy.currentHP }} / {{ enemy.maxHP }} ({{
                                 percentage(enemy) }}%) <span class="text-muted">AC:</span> {{ enemy.ac }}</div>
                             <div v-if="enemy.inv.length > 0">
-                                <span class="text-muted">inventory:</span> {{ enemy.inv.join(", ") }}
+                                <span class="text-muted">equipment:</span> {{ enemy.inv.join(", ") }}
                             </div>
                         </div>
                     </div>
