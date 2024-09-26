@@ -212,7 +212,7 @@ const processCommand = () => {
             case "roll":
                 commandArgs[0] = "" // remove the roll part
                 
-                proxy.$md.diceHistory.push(proxy.$md.Dice.x(commandArgs.join(" ")));
+                proxy.$md.diceHistory.push(proxy.$md.Dice.x(commandArgs.join(" ").trim()));
                 break;
             default:
                 // by default, we assume they've selected an enemy
