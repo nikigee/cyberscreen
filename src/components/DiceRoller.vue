@@ -59,34 +59,6 @@ export default {
                 this.$md.diceHistory.splice(0, this.$md.diceHistory.length);
                 this.diceInput = "";
                 return false;
-            } else if (command == "health") {
-                const diceRoll = this.$md.Dice.x(args);
-                this.$md.ply.health.add(diceRoll.total);
-
-                if (diceRoll.list.length > 0)
-                    this.$md.diceHistory.push(diceRoll);
-                this.diceInput = "";
-
-                this.$md.savePlayer(); // save changes
-                return false;
-            } else if (command == "xp") {
-                args = args.replace("+ ", "+");
-                args = args.replace("- ", "-");
-                if (!isNaN(Number(args))) {
-                    this.$md.ply.exp += Number(args); // add xp
-                }
-                this.diceInput = "";
-
-                this.$md.savePlayer();
-            } else if (command == "gold") {
-                args = args.replace("+ ", "+");
-                args = args.replace("- ", "-");
-                if (!isNaN(Number(args))) {
-                    this.$md.ply.inv.gold += Number(args); // add xp
-                }
-                this.diceInput = "";
-
-                this.$md.savePlayer();
             }
             else {
                 this.$md.diceHistory.push(this.$md.Dice.x(this.diceInput));

@@ -182,6 +182,24 @@ const processSelectCommand = (commandArgs, selected) => {
             }
 
             break;
+
+        case "copy":
+            let times = 1;
+            if (commandArgs[2]) {
+                if (!isNaN(Number(commandArgs[2])))
+                    times = Number(commandArgs[2]);
+            }
+
+            for (let i = 0; i < times; i++) {
+                let copy = JSON.parse(JSON.stringify(selected));
+                enemies.value.set(genID(), copy);
+            }
+
+            break;
+        case "remove": case "delete":
+            enemies.value.delete(commandArgs[0]);
+
+            break;
         default:
             // add / remove hp
 
