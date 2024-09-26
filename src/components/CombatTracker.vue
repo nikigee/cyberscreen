@@ -31,7 +31,7 @@
             </div>
         </li>
         <!-- If no enemies -->
-        <li class="list-group-item list-group-item-action mt-1" v-if="enemies.size == 0">
+        <li class="list-group-item mt-1" v-if="enemies.size == 0">
             <p class="m-0">Initialize...</p>
             <p class="m-0">No enemies detected.</p>
             <p class="m-0 text-muted">hi ฅ^•ﻌ•^ฅ</p>
@@ -84,21 +84,26 @@ const processCommand = () => {
 
         switch (commandArgs[0].toLowerCase()) {
             case "enemy":
-                if (commandArgs[1] === "add") {
-                    if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
-                        for (let i = 0; i < Number(commandArgs[5]); i++) {
+                switch (commandArgs[1]) {
+                    case "add":
+                        if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
+                            for (let i = 0; i < Number(commandArgs[5]); i++) {
+                                addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
+                            }
+                        } else {
                             addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
                         }
-                    } else {
-                        addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
-                    }
-                }
-                else if (commandArgs[1] === "remove" && commandArgs[2] !== "") {
-                    if (commandArgs[2] === "all") {
-                        enemies.value.clear();
-                    } else {
-                        enemies.value.delete(commandArgs[2]);
-                    }
+                        break;
+                    case "remove":
+                        if (commandArgs[2] !== "") {
+                            if (commandArgs[2] === "all") {
+                                enemies.value.clear();
+                            } else {
+                                enemies.value.delete(commandArgs[2]);
+                            }
+                        }
+                    default:
+                        break;
                 }
                 break;
             default:
@@ -106,45 +111,7 @@ const processCommand = () => {
 
                 const selected = enemies.value.get(commandArgs[0]);
                 if (selected) {
-                    switch (commandArgs[1]) {
-                        case "max": case "heal":
-                            // heal fully
-                            selected.currentHP = selected.maxHP;
-                            break;
-
-                        case "notes": case "note":
-                            if (commandArgs[2]) {
-                                if (commandArgs[2] == "clear") {
-                                    selected.notes = []; // clear notes
-                                } else {
-                                    let text = commandArgs.slice(2).join(" ");
-                                    selected.notes.push(text);
-                                }
-                            }
-
-                            break;
-                        case "weapon": case "inv":
-                            if (commandArgs[2]) {
-                                if (commandArgs[2] == "clear") {
-                                    selected.inv = []; // clear notes
-                                } else {
-                                    let text = commandArgs.slice(2).join(" ");
-                                    selected.inv.push(text);
-                                }
-                            }
-
-                            break;
-                        default:
-                            // add / remove hp
-
-                            let value = Number(commandArgs[1]);
-                            if (isNaN(value)) {
-                                break;
-                            }
-
-                            selected.currentHP += value;
-                            break;
-                    }
+                    processSelectCommand(commandArgs, selected);
                 }
                 break;
         }
@@ -154,8 +121,12 @@ const processCommand = () => {
     }
 };
 
+const genID = () => {
+    return ((new Date()).getTime() + enemies.value.size).toString(36).slice(5);
+}
+
 const addEnemy = (name = "Enemy", hp = 30, ac = 10) => {
-    const id = ((new Date()).getTime() + enemies.value.size).toString(36).slice(5);
+    const id = genID();
 
     const data = {
         name: name,
@@ -179,5 +150,48 @@ const percentage = (enemy) => {
 
 const getStatus = (enemy) => {
     return (enemy.currentHP <= 0 ? 'neutralized' : 'alive');
+}
+
+// for processing commands on a selected enemy
+const processSelectCommand = (commandArgs, selected) => {
+    switch (commandArgs[1]) {
+        case "max": case "heal":
+            // heal fully
+            selected.currentHP = selected.maxHP;
+            break;
+
+        case "notes": case "note":
+            if (commandArgs[2]) {
+                if (commandArgs[2] == "clear") {
+                    selected.notes = []; // clear notes
+                } else {
+                    let text = commandArgs.slice(2).join(" ");
+                    selected.notes.push(text);
+                }
+            }
+
+            break;
+        case "weapon": case "inv":
+            if (commandArgs[2]) {
+                if (commandArgs[2] == "clear") {
+                    selected.inv = []; // clear notes
+                } else {
+                    let text = commandArgs.slice(2).join(" ");
+                    selected.inv.push(text);
+                }
+            }
+
+            break;
+        default:
+            // add / remove hp
+
+            let value = Number(commandArgs[1]);
+            if (isNaN(value)) {
+                break;
+            }
+
+            selected.currentHP += value;
+            break;
+    }
 }
 </script>

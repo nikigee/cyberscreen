@@ -10,7 +10,7 @@ import DiceRoller from '@/components/DiceRoller.vue';
             <div class="col-xl-6">
                 <CombatTracker />
             </div>
-            <div class="col-xl-3">
+            <div class="col-xl-4">
                 <DiceRoller />
             </div>
         </div>
