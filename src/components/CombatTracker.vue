@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance } from 'vue';
 
 // Reactive state for hostiles
 const enemies = ref(new Map());
@@ -75,51 +75,6 @@ const quickSelect = (key) => {
     }
 };
 
-// Function to add new hostile to the list
-const processCommand = () => {
-    if (command.value.trim() !== '') {
-
-        // Split command by spaces, but keep quoted strings together
-        const commandArgs = command.value.match(/(?:[^\s"]+|"[^"]*")+/g).map(arg => arg.replace(/"/g, ''));
-
-        switch (commandArgs[0].toLowerCase()) {
-            case "enemy":
-                switch (commandArgs[1]) {
-                    case "add":
-                        if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
-                            for (let i = 0; i < Number(commandArgs[5]); i++) {
-                                addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
-                            }
-                        } else {
-                            addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
-                        }
-                        break;
-                    case "remove":
-                        if (commandArgs[2] !== "") {
-                            if (commandArgs[2] === "all") {
-                                enemies.value.clear();
-                            } else {
-                                enemies.value.delete(commandArgs[2]);
-                            }
-                        }
-                    default:
-                        break;
-                }
-                break;
-            default:
-                // by default, we assume they've selected an enemy
-
-                const selected = enemies.value.get(commandArgs[0]);
-                if (selected) {
-                    processSelectCommand(commandArgs, selected);
-                }
-                break;
-        }
-
-        command.value = '';  // Clear the input field
-        saveEnemies();  // Save enemies to localStorage
-    }
-};
 
 const genID = () => {
     return ((new Date()).getTime() + enemies.value.size).toString(36).slice(5);
@@ -151,6 +106,9 @@ const percentage = (enemy) => {
 const getStatus = (enemy) => {
     return (enemy.currentHP <= 0 ? 'neutralized' : 'alive');
 }
+
+// Access the global instance to call this.$md
+const { proxy } = getCurrentInstance();
 
 // for processing commands on a selected enemy
 const processSelectCommand = (commandArgs, selected) => {
@@ -204,6 +162,14 @@ const processSelectCommand = (commandArgs, selected) => {
             // add / remove hp
 
             let value = Number(commandArgs[1]);
+
+            // dice roll support
+            if(/^-?(\d+)?d\d+([+-]\d+)?$/.test(commandArgs[1])){
+                const roll = proxy.$md.Dice.x(commandArgs[1]);
+                proxy.$md.diceHistory.push(roll);
+                value = roll.total;
+            }
+
             if (isNaN(value)) {
                 break;
             }
@@ -212,4 +178,54 @@ const processSelectCommand = (commandArgs, selected) => {
             break;
     }
 }
+
+// Function to add new hostile to the list
+const processCommand = () => {
+    if (command.value.trim() !== '') {
+
+        // Split command by spaces, but keep quoted strings together
+        const commandArgs = command.value.match(/(?:[^\s"]+|"[^"]*")+/g).map(arg => arg.replace(/"/g, ''));
+
+        switch (commandArgs[0].toLowerCase()) {
+            case "enemy":
+                switch (commandArgs[1]) {
+                    case "add":
+                        if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
+                            for (let i = 0; i < Number(commandArgs[5]); i++) {
+                                addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
+                            }
+                        } else {
+                            addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
+                        }
+                    case "remove":
+                        if (commandArgs[2] !== "") {
+                            if (commandArgs[2] === "all") {
+                                enemies.value.clear();
+                            } else {
+                                enemies.value.delete(commandArgs[2]);
+                            }
+                        }
+                    default:
+                        break;
+                }
+                break;
+            case "roll":
+                commandArgs[0] = "" // remove the roll part
+                
+                proxy.$md.diceHistory.push(proxy.$md.Dice.x(commandArgs.join(" ")));
+                break;
+            default:
+                // by default, we assume they've selected an enemy
+
+                const selected = enemies.value.get(commandArgs[0]);
+                if (selected) {
+                    processSelectCommand(commandArgs, selected);
+                }
+                break;
+        }
+
+        command.value = '';  // Clear the input field
+        saveEnemies();  // Save enemies to localStorage
+    }
+};
 </script>

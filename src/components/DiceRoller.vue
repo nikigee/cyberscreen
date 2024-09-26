@@ -1,5 +1,5 @@
 <template>
-    <h2 class="header_text text-start">運DICE</h2>
+    <h2 class="header_text text-xl-start text-center">運DICE</h2>
     <div>
         <ul class="list-group list-group-flush mb-1">
             <li v-for="(d, index) in $md.diceHistory" v-show="index >= ($md.diceHistory.length - 1)"
@@ -55,10 +55,14 @@ export default {
         roll() {
             const command = this.diceInput.split(" ")[0]; // simple command parsing
             let args = this.diceInput.substring(this.diceInput.indexOf(" ") + 1);
+            if(this.diceInput == ""){
+                return;
+            }
+
             if (this.diceInput == "clear") {
                 this.$md.diceHistory.splice(0, this.$md.diceHistory.length);
                 this.diceInput = "";
-                return false;
+                return;
             }
             else {
                 this.$md.diceHistory.push(this.$md.Dice.x(this.diceInput));
