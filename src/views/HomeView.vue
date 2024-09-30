@@ -1,4 +1,5 @@
 <script setup>
+import ActivityLog from '@/components/ActivityLog.vue';
 import CombatTracker from '@/components/CombatTracker.vue';
 import DiceRoller from '@/components/DiceRoller.vue';
 </script>
@@ -11,7 +12,8 @@ import DiceRoller from '@/components/DiceRoller.vue';
                 <CombatTracker />
             </div>
             <div class="col-xl-4">
-                <DiceRoller />
+                <ActivityLog />
+                <DiceRoller class="mt-3" />
             </div>
         </div>
     </div>

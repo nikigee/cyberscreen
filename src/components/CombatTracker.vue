@@ -84,6 +84,7 @@ const addEnemy = (name = "Enemy", hp = 30, ac = 10) => {
     const id = genID();
 
     const data = {
+        id: id,
         name: name,
         maxHP: Number(hp),
         currentHP: Number(hp),
@@ -116,6 +117,8 @@ const processSelectCommand = (commandArgs, selected) => {
         case "max": case "heal":
             // heal fully
             selected.currentHP = selected.maxHP;
+
+            proxy.$cyber.write(`${selected.name} (${selected.id}) fully healed to ${selected.maxHP} hp`);
             break;
 
         case "notes": case "note":
@@ -150,7 +153,9 @@ const processSelectCommand = (commandArgs, selected) => {
 
             for (let i = 0; i < times; i++) {
                 let copy = JSON.parse(JSON.stringify(selected));
-                enemies.value.set(genID(), copy);
+                copy.id = genID(); // set new id
+
+                enemies.value.set(copy.id, copy);
             }
 
             break;
@@ -164,7 +169,7 @@ const processSelectCommand = (commandArgs, selected) => {
             let value = Number(commandArgs[1]);
 
             // dice roll support
-            if(/^-?(\d+)?d\d+([+-]\d+)?$/.test(commandArgs[1])){
+            if (/^-?(\d+)?d\d+([+-]\d+)?$/.test(commandArgs[1])) {
                 const roll = proxy.$md.Dice.x(commandArgs[1]);
                 proxy.$md.diceHistory.push(roll);
                 value = roll.total;
@@ -173,6 +178,17 @@ const processSelectCommand = (commandArgs, selected) => {
             if (isNaN(value)) {
                 break;
             }
+
+            if (commandArgs[2]) {
+                if (Math.sign(value) === -1) {
+                    proxy.$cyber.write(`${commandArgs[2]} dealt ${value * -1} damage to ${selected.name} (${selected.id})`);
+                } else {
+                    proxy.$cyber.write(`${commandArgs[2]} healed ${selected.name} (${selected.id}) by ${value} points`);
+                }
+            }
+
+            proxy.$cyber.write(`${selected.name} (${selected.id}) hp: ${selected.currentHP} -> ${selected.currentHP + value} (${value})`);
+
 
             selected.currentHP += value;
             break;
@@ -211,9 +227,24 @@ const processCommand = () => {
                 break;
             case "roll":
                 commandArgs[0] = "" // remove the roll part
-                
-                proxy.$md.diceHistory.push(proxy.$md.Dice.x(commandArgs.join(" ").trim()));
+
+                // const roll = proxy.$md.Dice.x(commandArgs.join(" ").trim());
+
+                // proxy.$md.diceHistory.push(roll);
+                // proxy.$cyber.write(`rolled ${roll.dice}, total: ${roll.total}`)
+
+                proxy.$roll(commandArgs.join(" ").trim());
                 break;
+            case "log":
+                switch (commandArgs[1]) {
+                    case "clear":
+                        proxy.$cyber.clear(); // clear log
+
+                        break;
+                
+                    default:
+                        break;
+                }
             default:
                 // by default, we assume they've selected an enemy
 
