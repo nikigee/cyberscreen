@@ -68,12 +68,22 @@ onMounted(() => {
 });
 
 const quickSelect = (key) => {
-    // TODO: to be expanded on later
     if (key) {
-        command.value = `${key} `;
+        const parsed = parseSelected(command.value);
+
+        // Check if the key is already present
+        const hasKey = parsed.some((e) => e.id == key);
+
+        if (!hasKey) {
+            command.value = parsed.length > 0
+                ? `${command.value.trim()},${key} `
+                : `${key} `;
+        }
+
         document.querySelector(".command-input").focus();
     }
 };
+
 
 
 const genID = () => {
@@ -124,10 +134,16 @@ const processSelectCommand = (commandArgs, selected) => {
         case "notes": case "note":
             if (commandArgs[2]) {
                 if (commandArgs[2] == "clear") {
+                    const count = selected.notes.length;
+
                     selected.notes = []; // clear notes
+
+                    proxy.$cyber.write(`${selected.name} (${selected.id}) ${count} note(s) cleared`);
                 } else {
                     let text = commandArgs.slice(2).join(" ");
                     selected.notes.push(text);
+
+                    proxy.$cyber.write(`${selected.name} (${selected.id}) note => ${text}`);
                 }
             }
 
@@ -160,8 +176,17 @@ const processSelectCommand = (commandArgs, selected) => {
 
             break;
         case "remove": case "delete":
-            enemies.value.delete(commandArgs[0]);
+            enemies.value.delete(selected.id);
 
+            break;
+
+        case "roll":
+            let text = commandArgs.slice(2).join(" ");
+
+            proxy.$cyber.write(`${selected.name} (${selected.id}) rolls ${text}`);
+
+            proxy.$roll(text);
+            
             break;
         default:
             // add / remove hp
@@ -170,8 +195,7 @@ const processSelectCommand = (commandArgs, selected) => {
 
             // dice roll support
             if (/^-?(\d+)?d\d+([+-]\d+)?$/.test(commandArgs[1])) {
-                const roll = proxy.$md.Dice.x(commandArgs[1]);
-                proxy.$md.diceHistory.push(roll);
+                const roll = proxy.$roll(commandArgs[1]);
                 value = roll.total;
             }
 
@@ -194,6 +218,21 @@ const processSelectCommand = (commandArgs, selected) => {
             break;
     }
 }
+
+const parseSelected = (input) => {
+    const selectedEnemies = new Set();  // Use a Set to avoid duplicates
+
+    input.trim().split(",").forEach(v => {
+        const trimmedValue = v.trim();
+        const enemy = enemies.value.get(trimmedValue);
+        if (enemy) {
+            selectedEnemies.add(enemy);
+        }
+    });
+
+    return Array.from(selectedEnemies);  // Convert Set back to an array
+}
+
 
 // Function to add new hostile to the list
 const processCommand = () => {
@@ -241,17 +280,25 @@ const processCommand = () => {
                         proxy.$cyber.clear(); // clear log
 
                         break;
-                
+                    case "add":
+                        commandArgs[0] = "";
+                        commandArgs[1] = "";
+
+                        proxy.$cyber.write(commandArgs.join(" ").trim());
+
+                        break;
                     default:
                         break;
                 }
             default:
                 // by default, we assume they've selected an enemy
 
-                const selected = enemies.value.get(commandArgs[0]);
-                if (selected) {
-                    processSelectCommand(commandArgs, selected);
-                }
+                const selected = parseSelected(commandArgs[0]);
+
+                selected.forEach((v) => {
+                    processSelectCommand(commandArgs, v);
+                });
+
                 break;
         }
 
