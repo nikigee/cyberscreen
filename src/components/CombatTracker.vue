@@ -186,7 +186,7 @@ const processSelectCommand = (commandArgs, selected) => {
             proxy.$cyber.write(`${selected.name} (${selected.id}) rolls ${text}`);
 
             proxy.$roll(text);
-            
+
             break;
         default:
             // add / remove hp
@@ -290,6 +290,15 @@ const processCommand = () => {
                     default:
                         break;
                 }
+            case "ai":
+                commandArgs[0] = "";
+                
+                proxy.$ai.prompt(commandArgs.join(" ").trim())
+                    .then((r) => {
+                        proxy.$cyber.write(r.content);
+                    });
+
+                break;
             default:
                 // by default, we assume they've selected an enemy
 
