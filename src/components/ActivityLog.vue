@@ -5,11 +5,12 @@
             <div v-if="$cyber.log.length === 0">
                 <span class="entry text-muted">> cyber log start</span>
             </div>
-            
+
             <div v-for="item in $cyber.log" :key="item.id">
                 <span class="entry text-secondary">> {{ item.content }}</span>
             </div>
         </div>
+        <div class="text-end text-secondary pt-1 processing" v-if="$ai.thinking">AI Processing...</div>
     </div>
 </template>
 
@@ -45,5 +46,9 @@ export default {
 
 .console {
     overflow: auto;
+}
+
+.processing {
+    font-size: small;
 }
 </style>

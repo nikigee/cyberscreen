@@ -3,32 +3,9 @@
     <ul class="list-group list-group-flush">
         <li v-for="[key, enemy] in enemies" :key="key" class="list-group-item list-group-item-action"
             v-bind:class="{ 'list-group-item-primary': enemy.currentHP <= 0 }" @click="quickSelect(key)">
-            <div class="row align-items-center text-start">
-                <div class="col-auto">
-                    <span class="text-muted">ID:</span> {{ key }}
-                </div>
-                <div class="col">
-                    <div class="d-flex justify-content-between">
-                        <!-- Left side -->
-                        <div>
-                            <span>[ status: {{ getStatus(enemy) }} ]</span>
-                            <div class="fw-bold text-uppercase">{{ enemy.name }}</div>
 
-                            <div v-if="enemy.notes.length > 0" class="text-muted">
-                                notes: {{ JSON.stringify(enemy.notes) }}
-                            </div>
-                        </div>
-                        <!-- Right side -->
-                        <div class="text-end">
-                            <div><span class="text-muted">HP:</span> {{ enemy.currentHP }} / {{ enemy.maxHP }} ({{
-                                percentage(enemy) }}%) <span class="text-muted">AC:</span> {{ enemy.ac }}</div>
-                            <div v-if="enemy.inv.length > 0">
-                                <span class="text-muted">equipment:</span> {{ enemy.inv.join(", ") }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Entity :entity="enemy" :entityKey="key" />
+
         </li>
         <!-- If no enemies -->
         <li class="list-group-item mt-1" v-if="enemies.size == 0">
@@ -52,6 +29,7 @@
 
 <script setup>
 import { ref, onMounted, getCurrentInstance } from 'vue';
+import Entity from './Entity.vue'
 
 // Reactive state for hostiles
 const enemies = ref(new Map());
@@ -90,7 +68,7 @@ const genID = () => {
     return ((new Date()).getTime() + enemies.value.size).toString(36).slice(5);
 }
 
-const addEnemy = (name = "Enemy", hp = 30, ac = 10) => {
+const addEntity = (name = "Enemy", hp = 30, ac = 10) => {
     const id = genID();
 
     const data = {
@@ -109,14 +87,6 @@ const addEnemy = (name = "Enemy", hp = 30, ac = 10) => {
 const saveEnemies = () => {
     localStorage.setItem("saved_enemies", JSON.stringify(Array.from(enemies.value.entries())));
 };
-
-const percentage = (enemy) => {
-    return (enemy.currentHP / enemy.maxHP * 100).toFixed(0);
-}
-
-const getStatus = (enemy) => {
-    return (enemy.currentHP <= 0 ? 'neutralized' : 'alive');
-}
 
 // Access the global instance to call this.$md
 const { proxy } = getCurrentInstance();
@@ -247,10 +217,10 @@ const processCommand = () => {
                     case "add":
                         if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
                             for (let i = 0; i < Number(commandArgs[5]); i++) {
-                                addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
+                                addEntity(commandArgs[2], commandArgs[3], commandArgs[4]);
                             }
                         } else {
-                            addEnemy(commandArgs[2], commandArgs[3], commandArgs[4]);
+                            addEntity(commandArgs[2], commandArgs[3], commandArgs[4]);
                         }
                     case "remove":
                         if (commandArgs[2] !== "") {
@@ -291,12 +261,24 @@ const processCommand = () => {
                         break;
                 }
             case "ai":
-                commandArgs[0] = "";
-                
-                proxy.$ai.prompt(commandArgs.join(" ").trim())
-                    .then((r) => {
-                        proxy.$cyber.write(r.content);
-                    });
+                // commands relating to ai stuff
+                // any function call with proxy.$ai requires backend to be online
+
+                switch (commandArgs[1]) {
+                    case "prompt":
+                        commandArgs[0] = "";
+                        commandArgs[1] = "";
+
+                        proxy.$ai.prompt(commandArgs.join(" ").trim())
+                            .then((r) => {
+                                proxy.$cyber.write(`[AI] ${r}`);
+                            });
+
+                        break;
+
+                    default:
+                        break;
+                }
 
                 break;
             default:

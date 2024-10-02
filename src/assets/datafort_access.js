@@ -1,11 +1,13 @@
 class AI {
     constructor(apiBaseUrl) {
         this.apiBaseUrl = apiBaseUrl;
+        this.thinking = false;
     }
 
     async prompt(userPrompt) {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/ai/prompt/`, {
+            this.thinking = true;
+            const response = await fetch(`${this.apiBaseUrl}/api/prompt/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -18,10 +20,12 @@ class AI {
             }
 
             const data = await response.json();
-            return data;
+            this.thinking = false;
+            return data.content;
         } catch (error) {
             console.error('Error during API call:', error);
-            return { error: 'An error occurred while communicating with the AI.' };
+            this.thinking = false;
+            return `[error] Failed to communicate with the datafort.`;
         }
     }
 }
