@@ -4,7 +4,7 @@
 			<span class="text-muted">ID:</span> {{ entityKey }}
 		</div>
 		<div class="col">
-			<div class="d-flex justify-content-between">
+			<div class="d-flex justify-content-between mt-1">
 				<!-- Left side -->
 				<div>
 					<span>[ status: {{ getStatus(entity) }} ]</span>
@@ -23,8 +23,8 @@
 					</div>
 				</div>
 			</div>
-			<div class="" :style="'visibility:' + (shouldDisplay(percentage(entity)) ? 'visible' : 'hidden') + ';'">
-				<div class="bg-primary bar" :style="'width: ' + percentage(entity) + '%;'" style="height: 1px;">
+			<div class="mt-1" style="overflow: hidden;" :style="'visibility:' + (shouldDisplay(percentage(entity)) ? 'visible' : 'hidden') + ';'">
+				<div class="bg-secondary bar" :style="'width: ' + percentage(entity) + '%;'" style="height: 1px;">
 				</div>
 			</div>
 		</div>
