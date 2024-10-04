@@ -3,9 +3,7 @@
     <ul class="list-group list-group-flush">
         <li v-for="[key, enemy] in enemies" :key="key" class="list-group-item list-group-item-action"
             v-bind:class="{ 'list-group-item-primary': enemy.currentHP <= 0 }" @click="quickSelect(key)">
-
             <Entity :entity="enemy" :entityKey="key" />
-
         </li>
         <!-- If no enemies -->
         <li class="list-group-item mt-1" v-if="enemies.size == 0">
@@ -30,6 +28,11 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import Entity from './Entity.vue'
+import { useAIStore } from '@/stores/datafort';
+
+const ai = useAIStore();
+
+const room = ai.room;
 
 // Reactive state for hostiles
 const enemies = ref(new Map());
@@ -269,7 +272,13 @@ const processCommand = () => {
                         commandArgs[0] = "";
                         commandArgs[1] = "";
 
-                        proxy.$ai.prompt(commandArgs.join(" ").trim())
+                        let smart = false;
+
+                        if (commandArgs[3] == "true") {
+                            smart = true;
+                        }
+
+                        ai.prompt(commandArgs[2], smart)
                             .then((r) => {
                                 proxy.$cyber.write(`[AI] ${r}`);
                             });
@@ -281,6 +290,24 @@ const processCommand = () => {
                 }
 
                 break;
+            case "room":
+                if(commandArgs[1] == "clear"){
+                    ai.clearRoom();
+                    localStorage.removeItem("room"); // remove from save too
+                    break; // reset and get out
+                }
+
+                const name = commandArgs[1];
+                const context = commandArgs[2];
+
+                ai.clearRoom();
+
+                room.name = name;
+                room.context = context;
+                room.display = true;
+
+                break;
+
             default:
                 // by default, we assume they've selected an enemy
 

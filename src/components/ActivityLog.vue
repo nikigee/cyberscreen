@@ -10,11 +10,17 @@
                 <span class="entry text-secondary">> {{ item.content }}</span>
             </div>
         </div>
-        <div class="text-end text-secondary pt-1 processing" v-if="$ai.thinking">AI Processing...</div>
+        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking">AI Processing...</div>
     </div>
 </template>
 
+<script setup>
+const ai = useAIStore();
+
+</script>
+
 <script>
+import { useAIStore } from '@/stores/datafort';
 import { nextTick } from 'vue';
 
 export default {
