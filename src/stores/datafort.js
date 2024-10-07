@@ -36,7 +36,9 @@ export const useAIStore = defineStore('ai', () => {
         name: "",
         context: "",
         display: false,
-        description: ""
+        description: "",
+        enhance: false,
+        in_depth: {}
     });
 
     function clearRoom() {
@@ -44,6 +46,9 @@ export const useAIStore = defineStore('ai', () => {
         room.value.context = "";
         room.value.display = false;
         room.value.description = "";
+        room.value.accent = "";
+        room.value.enhance = false;
+        room.value.in_depth = {}
     }
     
 

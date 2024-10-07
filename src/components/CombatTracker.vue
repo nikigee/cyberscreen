@@ -291,10 +291,13 @@ const processCommand = () => {
 
                 break;
             case "room":
-                if(commandArgs[1] == "clear"){
+                if (commandArgs[1] == "clear") {
                     ai.clearRoom();
                     localStorage.removeItem("room"); // remove from save too
                     break; // reset and get out
+                } else if (commandArgs[1] == "more") {
+                    room.enhance = room.enhance ? false : true;
+                    break;
                 }
 
                 const name = commandArgs[1];

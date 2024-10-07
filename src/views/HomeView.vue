@@ -25,10 +25,10 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="container-fluid px-5 text-center pt-2 mb-5">
+    <div class="container-fluid px-4 text-center pt-2 mb-5">
         <div class="row justify-content-center">
             <!-- Auto generated room descriptions and references -->
-            <div class="col-3" v-if="room.display">
+            <div class="col-xl-3" v-if="room.display">
                 <Room />
             </div>
             <!-- For tracking enemies and party members in combat -->
