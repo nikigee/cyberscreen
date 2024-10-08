@@ -37,12 +37,6 @@
                 </li>
             </ul>
             <p class="border text-muted">終了行</p>
-            <!-- <div class="input-group">
-            <input @keyup.enter="roll" type="text" class="form-control" v-model="diceInput"
-                placeholder="Enter dice roll here (example: d20+4)" aria-label="Enter dice roll here (example: d20+4)"
-                aria-describedby="button-addon2">
-            <button @click="roll" class="btn btn-outline-primary" type="button" id="button-addon2">Roll</button>
-        </div> -->
         </div>
     </div>
 </template>

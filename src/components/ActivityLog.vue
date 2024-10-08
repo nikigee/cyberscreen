@@ -10,7 +10,7 @@
                 <span class="entry text-secondary">> {{ item.content }}</span>
             </div>
         </div>
-        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking">AI Processing...</div>
+        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking">[ AI Processing ]</div>
     </div>
 </template>
 
@@ -56,5 +56,6 @@ export default {
 
 .processing {
     font-size: small;
+    text-transform: uppercase;
 }
 </style>
