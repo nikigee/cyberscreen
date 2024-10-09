@@ -240,11 +240,6 @@ const processCommand = () => {
             case "roll":
                 commandArgs[0] = "" // remove the roll part
 
-                // const roll = proxy.$md.Dice.x(commandArgs.join(" ").trim());
-
-                // proxy.$md.diceHistory.push(roll);
-                // proxy.$cyber.write(`rolled ${roll.dice}, total: ${roll.total}`)
-
                 proxy.$roll(commandArgs.join(" ").trim());
                 break;
             case "log":
@@ -297,6 +292,20 @@ const processCommand = () => {
                     break; // reset and get out
                 } else if (commandArgs[1] == "more") {
                     room.enhance = room.enhance ? false : true;
+
+                    break;
+                } else if (commandArgs[1] == "mission" || commandArgs[1] == "objective") {
+                    // set the mission / objective in the room
+                    if (room.enhance == true) {
+                        room.enhance = false; // reset
+                        room.in_depth.poi = "";
+                    }
+
+                    room.in_depth.objective = commandArgs[2];
+
+                    // set to true to refresh
+                    room.enhance = true;
+
                     break;
                 }
 

@@ -44,9 +44,13 @@ export const useAIStore = defineStore('ai', () => {
     function clearRoom() {
         room.value.name = "";
         room.value.context = "";
-        room.value.display = false;
+        room.value.display = false; // tells to show the room
+
+        // generated when displayed
         room.value.description = "";
         room.value.accent = "";
+
+        // enhance flags to use in_depth features
         room.value.enhance = false;
         room.value.in_depth = {}
     }

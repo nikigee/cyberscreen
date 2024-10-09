@@ -11,12 +11,17 @@
         </transition>
 
         <transition name="fade">
-            <h3 class="header_text h4 mt-4" :style="{ color: accent }" v-if="in_depth.poi">
-                Points of Interest
-            </h3>
-        </transition>
-        <transition name="fade">
-            <div v-if="in_depth.poi" v-html="in_depth.poi"></div>
+            <div v-if="in_depth.poi">
+                <h3 class="header_text h4 mt-4 mb-1" :style="{ color: accent }">
+                    Points of Interest
+                </h3>
+                <transition name="fade">
+                    <p class="mb-2" :style="{ color: accent }" v-if="in_depth.objective">[ ! ] {{
+                        in_depth.objective
+                        }}.</p>
+                </transition>
+                <div v-html="in_depth.poi"></div>
+            </div>
         </transition>
 
     </div>
@@ -84,11 +89,20 @@ async function generateRoomDetails() {
             room.in_depth = {}; // clear if not enhanced
             return;
         }
+        console.log("Room is enhanced");
+
+        // if theres an objective, assign it here
+        if (room.in_depth.objective) {
+            in_depth.value.objective = room.in_depth.objective; // assign
+            console.log("Objective is assigned");
+        }
 
         if (!room.in_depth.poi) {
-            console.log("Room is enhanced.");
+            let promptText = `Based on this description: ${room.description}, generate a list of at least four interactive rooms or points of interest in this room that players could interact with to find loot or clues or people to talk to in a cyberpunk red tabletop session. For each item, provide a brief description (one or two sentences) that is concise and directly relevant to the players' goals. Format the list with bold titles for each point of interest using **, followed by a colon and the description. Just give the list and don't have an intro.`;
+            if (room.in_depth.objective) {
+                promptText += `The party's objective in this room is ${room.in_depth.objective}`;
+            }
 
-            const promptText = `Based on this description: ${room.description}, generate a list of at least four interactive rooms or points of interest in this room that players could interact with to find loot or clues or people to talk to in a cyberpunk red tabletop session. For each item, provide a brief description (one or two sentences) that is concise and directly relevant to the players' goals. Format the list with bold titles for each point of interest using **, followed by a colon and the description. Just give the list and don't have an intro.`;
             const response = await ai.prompt(promptText, true);
 
             // Replace **text** with <b>text</b> in the response
