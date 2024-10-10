@@ -62,6 +62,6 @@ export default {
 
 <style lang="scss" scoped>
 .bar {
-	transition: 1s;
+	transition: 1s ease-out;
 }
 </style>

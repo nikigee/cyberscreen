@@ -18,7 +18,7 @@
                 <transition name="fade">
                     <p class="mb-2" :style="{ color: accent }" v-if="in_depth.objective">[ ! ] {{
                         in_depth.objective
-                        }}.</p>
+                    }}.</p>
                 </transition>
                 <div v-html="in_depth.poi"></div>
             </div>
@@ -31,6 +31,7 @@
 import { ref, onMounted, watch } from 'vue';
 import DOMPurify from 'dompurify';
 import { useAIStore } from '@/stores/datafort';
+import GFX from './GFX.vue';
 
 const ai = useAIStore();
 const room = ai.room;
@@ -143,9 +144,21 @@ watch(
     opacity: 0;
 }
 
+@keyframes slideIn {
+    0% {
+        width: 80%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+
 /* Accent color transition */
 .header_bg {
-    transition: color 0.5s ease-in-out;
+    transition: background-color 0.5s ease-in-out;
     background-color: white;
+    animation: slideIn 0.5s ease;
 }
 </style>

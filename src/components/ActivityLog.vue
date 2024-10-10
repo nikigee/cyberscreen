@@ -10,7 +10,7 @@
                 <span class="entry text-secondary">> {{ item.content }}</span>
             </div>
         </div>
-        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking">[ AI Processing ]</div>
+        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking"><span class="load">|</span> AI Processing...</div>
     </div>
 </template>
 
@@ -54,8 +54,40 @@ export default {
     overflow: auto;
 }
 
+@keyframes loading {
+    0% {
+        text-shadow: 0px 0px 0px inherit;
+    }
+
+    100% {
+        text-shadow: 0px 0px 15px cyan;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
 .processing {
     font-size: small;
     text-transform: uppercase;
+    animation: loading 2s ease infinite;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+}
+
+.load {
+    animation: spin 0.5s steps(5) infinite;
+    display: inline-block;
+    transform-origin: center;
+    font-size: large;
+    vertical-align: middle;
 }
 </style>
