@@ -18,7 +18,7 @@
                 <transition name="fade">
                     <p class="mb-2" :style="{ color: accent }" v-if="in_depth.objective">[ ! ] {{
                         in_depth.objective
-                    }}.</p>
+                        }}.</p>
                 </transition>
                 <div v-html="in_depth.poi"></div>
             </div>
@@ -61,11 +61,12 @@ async function generateRoomDetails() {
     try {
         // Generate description if not available
         if (!room.description) {
-            const promptText = `Generate a concise room description of this location: ${DOMPurify.sanitize(
+            const promptText = `Please write a vivid and immersive description of the location "${DOMPurify.sanitize(
                 room.name
-            )} for my cyberpunk red campaign with context: ${DOMPurify.sanitize(
+            )}" for a Cyberpunk Red campaign. Keep it easy for a dm to narrate. Incorporate the following context: "${DOMPurify.sanitize(
                 room.context
-            )}. Don't include a title. No more than two paragraphs.`;
+            )}". The description should be no more than two paragraphs. Each paragraph should be less than 70 words. Do not include a title or any additional headings.`;
+
             const response = await ai.prompt(promptText, true);
             const formattedDescription = `<p>${response.replace(/\n/g, '</p><p>')}</p>`;
             room.description = DOMPurify.sanitize(formattedDescription);
@@ -74,7 +75,7 @@ async function generateRoomDetails() {
 
         // Generate accent color if not available
         if (!room.accent) {
-            const promptText = `Based on this description: ${room.description}, generate a good bright neon color in CSS hex code for my dark cyberpunk black background web application. Just give the pure hex code and nothing else.`;
+            const promptText = `Based on the following description: "${room.description}", suggest a bright neon color in CSS hex code that complements a dark cyberpunk-themed black background for a web application. Provide only the hex code without any additional text or explanation.`;
             const response = await ai.prompt(promptText, false);
             const hexCode = response.trim();
             if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(hexCode)) {
@@ -99,10 +100,11 @@ async function generateRoomDetails() {
         }
 
         if (!room.in_depth.poi) {
-            let promptText = `Based on this description: ${room.description}, generate a list of at least four interactive rooms or points of interest in this room that players could interact with to find loot or clues or people to talk to in a cyberpunk red tabletop session. For each item, provide a brief description (one or two sentences) that is concise and directly relevant to the players' goals. Format the list with bold titles for each point of interest using **, followed by a colon and the description. Just give the list and don't have an intro.`;
+            let promptText = `Based on the following description: "${room.description}", create a list of at least four points of interest within this room for a Cyberpunk Red tabletop session. Each point of interest should be interactive and offer opportunities for players to find loot, discover clues, or engage with NPCs relevant to their goals. For each item, provide a brief description (one or two sentences) that is concise and directly related to the players' objectives. Format the list with bold titles for each point of interest using double asterisks (**), followed by a colon and the description. Do not include an introduction or conclusion; just provide the list.`;
             if (room.in_depth.objective) {
-                promptText += `The party's objective in this room is ${room.in_depth.objective}`;
+                promptText += ` The party's objective in this room is: "${room.in_depth.objective}".`;
             }
+
 
             const response = await ai.prompt(promptText, true);
 

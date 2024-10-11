@@ -292,7 +292,6 @@ const processCommand = () => {
                     break; // reset and get out
                 } else if (commandArgs[1] == "more") {
                     room.enhance = room.enhance ? false : true;
-
                     break;
                 } else if (commandArgs[1] == "mission" || commandArgs[1] == "objective") {
                     // set the mission / objective in the room
@@ -306,6 +305,74 @@ const processCommand = () => {
                     // set to true to refresh
                     room.enhance = true;
 
+                    proxy.$cyber.write(`room objective changed => ${room.in_depth.objective ? room.in_depth.objective : "No objective"}`);
+                    break;
+                } else if (commandArgs[1] == "add") {
+                    if (!room.description) {
+                        proxy.$cyber.write(`[warn] Can't follow up if there is no room.`);
+                    } else {
+                        const prevContext = [{ role: "assistant", content: room.description }]; // compile context
+
+                        const promptText = `Add onto the previous description with instructions: "${commandArgs[2]}". Ensure that the new content blends seamlessly with the existing description, maintaining the same style and tone. Keep the description concise, brief, and to the point. No more than ${commandArgs[3] ? commandArgs[3] : "40"} words. Focus only on the key details provided and avoid repeating any information already included. Do not add extra background or unrelated content.`;
+
+                        ai.prompt(promptText, true, prevContext)
+                            .then((response) => {
+                                const formattedDescription = `<p>${response.replace(/\n/g, '</p><p>')}</p>`;
+                                const desc = room.description;
+                                room.description = "";
+                                room.description = desc + `<p>...</p>${formattedDescription}`;
+
+                                // this code is just to force it to refresh
+                                room.context += " ";
+                                room.content = room.context.trim();
+                            });
+                    }
+                    break;
+                } else if (commandArgs[1] == "navigate") {
+                    if (!room.name) {
+                        proxy.$cyber.write(`[warn] Can't navigate if there is no current room.`);
+                    } else {
+                        const destination = commandArgs[2];
+                        if (!destination) {
+                            proxy.$cyber.write(`[warn] Please specify a destination to navigate to.`);
+                        } else {
+                            const prevContext = [{ role: "assistant", content: room.description }];
+
+                            const promptText = `In our Cyberpunk Red campaign, the player is currently in "${room.name}" described as "${room.description}". They wish to navigate to "${destination}". Provide the new room's name and a brief context for this new location. Format your response exactly as follows:
+
+                                Room Name: [new room name]
+                                Context: [new context]
+
+                                The context should be concise, no more than one sentence.`;
+
+                            ai.prompt(promptText, true, prevContext)
+                                .then((response) => {
+                                    // Parse the response
+                                    const roomNameMatch = response.match(/Room Name:\s*(.*)/i);
+                                    const contextMatch = response.match(/Context:\s*(.*)/i);
+
+                                    if (roomNameMatch && contextMatch) {
+                                        const newRoomName = roomNameMatch[1].trim();
+                                        const newRoomContext = contextMatch[1].trim();
+
+                                        ai.clearRoom();
+
+                                        room.name = newRoomName;
+                                        room.context = newRoomContext;
+                                        room.display = true;
+
+                                        proxy.$cyber.write(`Navigated to => ${room.name}`);
+                                        proxy.$cyber.write(`Context => ${room.context}`);
+                                    } else {
+                                        proxy.$cyber.write(`[warn] Failed to parse the new room information.`);
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error('Error during AI prompt:', error);
+                                    proxy.$cyber.write(`[error] Failed to navigate to a new room.`);
+                                });
+                        }
+                    }
                     break;
                 }
 
@@ -318,7 +385,10 @@ const processCommand = () => {
                 room.context = context;
                 room.display = true;
 
+                proxy.$cyber.write(`room => ${room.name}`);
+
                 break;
+
 
             default:
                 // by default, we assume they've selected an enemy

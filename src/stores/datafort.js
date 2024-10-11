@@ -6,7 +6,7 @@ export const useAIStore = defineStore('ai', () => {
     const apiBaseUrl = "http://localhost:3000";
     const thinking = ref(false);
 
-    const prompt = async (userPrompt, smart = false) => {
+    const prompt = async (userPrompt, smart = false, context = []) => {
         try {
             thinking.value = true;
             const response = await fetch(`${apiBaseUrl}/api/prompt/`, {
@@ -14,7 +14,7 @@ export const useAIStore = defineStore('ai', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ prompt: userPrompt, smart }),
+                body: JSON.stringify({ prompt: userPrompt, smart, context }),
             });
 
             if (!response.ok) {
@@ -52,9 +52,8 @@ export const useAIStore = defineStore('ai', () => {
 
         // enhance flags to use in_depth features
         room.value.enhance = false;
-        room.value.in_depth = {}
+        room.value.in_depth = {};
     }
-    
 
     return {
         // AI
