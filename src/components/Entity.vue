@@ -15,7 +15,7 @@
 					</div>
 				</div>
 				<!-- Right side -->
-				<div class="text-end">
+				<div class="text-end ms-1">
 					<div><span class="text-muted">HP:</span> {{ entity.currentHP }} / {{ entity.maxHP }} ({{
 						percentage(entity) }}%) <span class="text-muted">AC:</span> {{ entity.ac }}</div>
 					<div v-if="entity.inv.length > 0">
