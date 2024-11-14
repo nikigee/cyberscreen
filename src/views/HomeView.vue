@@ -7,6 +7,7 @@ import DiceRoller from '@/components/DiceRoller.vue';
 import Room from '@/components/Room.vue';
 
 import { useAIStore } from '@/stores/datafort'
+import LootTable from '@/components/LootTable.vue';
 
 const room = useAIStore().room;
 
@@ -38,6 +39,7 @@ onMounted(() => {
             <!-- Log for activity and the dice tray to display dice rolls -->
             <div class="col-xl-3">
                 <ActivityLog />
+                <LootTable class="mt-3" />
                 <DiceRoller class="mt-3" />
             </div>
         </div>
