@@ -39,7 +39,6 @@ onMounted(() => {
             <!-- Log for activity and the dice tray to display dice rolls -->
             <div class="col-xl-3">
                 <ActivityLog />
-                <LootTable class="mt-3" />
                 <DiceRoller class="mt-3" />
             </div>
         </div>
