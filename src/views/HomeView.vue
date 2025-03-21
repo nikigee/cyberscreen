@@ -26,21 +26,23 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="container-fluid px-4 text-center pt-2 mb-5">
+    <div class="container text-center pt-2 mb-5 main">
         <div class="row justify-content-center">
-            <!-- Auto generated room descriptions and references -->
-            <div class="col-xl-3" v-if="room.display">
-                <Room />
-            </div>
             <!-- For tracking enemies and party members in combat -->
-            <div class="col-xl-4 mb-3">
+            <div class="col-lg mb-3">
+                <!-- Auto generated room descriptions and references -->
+                <div class="mb-5" v-if="room.display">
+                    <Room />
+                </div>
                 <CombatTracker />
             </div>
             <!-- Log for activity and the dice tray to display dice rolls -->
-            <div class="col-xl-3">
+            <div class="col-lg-4 console">
                 <ActivityLog />
                 <DiceRoller class="mt-3" />
             </div>
         </div>
     </div>
 </template>
+
+<style lang="scss" scoped></style>

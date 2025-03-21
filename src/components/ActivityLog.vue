@@ -1,7 +1,7 @@
 <template>
     <div class="text-start">
         <div class="bg-secondary text-dark px-2">CONSOLE</div>
-        <div style="height: 150px;" class="border border-secondary py-1 console">
+        <div style="height: 25vh; min-height: 150px;" class="border border-secondary py-1 console">
             <div v-if="$cyber.log.length === 0">
                 <span class="entry text-muted">> cyber log start</span>
             </div>

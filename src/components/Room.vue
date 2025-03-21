@@ -1,6 +1,6 @@
 <template>
     <div class="text-start">
-        <h2 class="header_text header_bg text-xl-start text-center text-black py-1 px-2"
+        <h2 class="header_text header_bg text-center text-black py-1 px-2"
             :style="{ backgroundColor: accent }">
             {{ room.name }}
         </h2>
