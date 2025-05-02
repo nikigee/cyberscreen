@@ -75,14 +75,18 @@ async function generateRoomDetails() {
 
         // Generate accent color if not available
         if (!room.accent) {
-            const promptText = `Based on the following description: "${room.description}", suggest a bright neon color in CSS hex code that complements a dark cyberpunk-themed black background for a web application. Provide only the hex code without any additional text or explanation.`;
-            const response = await ai.prompt(promptText, false);
-            const hexCode = response.trim();
-            if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(hexCode)) {
-                room.accent = hexCode;
-            } else {
-                throw new Error('Invalid hex code received from AI');
-            }
+            // const promptText = `Based on the following description: "${room.description}", suggest a bright neon color in CSS hex code that complements a dark cyberpunk-themed black background for a web application. Provide only the hex code without any additional text or explanation.`;
+            // const response = await ai.prompt(promptText, false);
+            // const hexCode = response.trim();
+            // if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(hexCode)) {
+            //     room.accent = hexCode;
+            // } else {
+            //     throw new Error('Invalid hex code received from AI');
+            // }
+
+            // no more ai part
+            const accents = ["var(--bs-primary)", "var(--bs-secondary)"];
+            room.accent = accents[Math.floor(Math.random() * accents.length)];
         }
         accent.value = room.accent;
 

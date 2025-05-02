@@ -31,6 +31,63 @@ export const useAIStore = defineStore('ai', () => {
         }
     };
 
+    // function to generate a container of loot based on the given name
+    // The AI selects items from the given table which would fit inside that container
+    // example: "Hidden safe"
+    // lootTable is an array of objects
+    // returns an array of objects
+    const generateLoot = async (containerName, lootTable) => {
+        try {
+            if (!Array.isArray(lootTable) || lootTable.length === 0) {
+                console.error("generateLoot: lootTable must be a non-empty array.");
+                return [];
+            }
+
+            const userPrompt = `
+    You are selecting items to place inside a container called "${containerName}".
+    Here is the available loot table:
+    
+    ${JSON.stringify(lootTable, null, 2)}
+    
+    Pick a small number of items (2 to 5) that would realistically fit inside that container.
+    For each selected item, return an object with:
+    - name
+    - quantity (whatever makes sense)
+    - cost (same as the item in the lootTable)
+    
+    Return ONLY a JSON array of the selected items.
+    `;
+
+            let aiResponse = await prompt(userPrompt, true); // smart=true for better selection
+            aiResponse = aiResponse.replace("```json", "");
+            aiResponse = aiResponse.replace("```", "");
+
+            let loot;
+
+            try {
+                loot = JSON.parse(aiResponse);
+            } catch (parseError) {
+                console.log(aiResponse);
+                console.error('Failed to parse AI loot response:', parseError);
+                return [];
+            }
+
+            if (!Array.isArray(loot)) {
+                console.log(aiResponse);
+                console.error('AI did not return an array.');
+                return [];
+            }
+
+            console.log("container name: ", containerName);
+            console.log("loot: ", loot);
+            return loot;
+        } catch (error) {
+            console.error('generateLoot error:', error);
+            return [];
+        }
+    };
+
+
     // Room-related state and methods
     const room = ref({
         name: "",
@@ -60,6 +117,7 @@ export const useAIStore = defineStore('ai', () => {
         apiBaseUrl,
         thinking,
         prompt,
+        generateLoot,
 
         // Room
         room,

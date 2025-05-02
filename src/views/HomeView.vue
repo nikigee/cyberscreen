@@ -37,8 +37,9 @@ onMounted(() => {
                 <CombatTracker />
             </div>
             <!-- Log for activity and the dice tray to display dice rolls -->
-            <div class="col-lg-4 console">
+            <div class="col-lg-4">
                 <ActivityLog />
+                <LootTable class="mt-3" />
                 <DiceRoller class="mt-3" />
             </div>
         </div>

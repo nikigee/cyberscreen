@@ -29,6 +29,7 @@
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import Entity from './Entity.vue'
 import { useAIStore } from '@/stores/datafort';
+import { useLootStore } from '@/stores/stores';
 
 const ai = useAIStore();
 
@@ -248,14 +249,11 @@ const processCommand = () => {
                         proxy.$cyber.clear(); // clear log
 
                         break;
-                    case "add":
-                        commandArgs[0] = "";
-                        commandArgs[1] = "";
-
-                        proxy.$cyber.write(commandArgs.join(" ").trim());
-
-                        break;
                     default:
+                        commandArgs[0] = "";
+
+                        proxy.$cyber.write("[LOG] " + commandArgs.join(" ").trim());
+
                         break;
                 }
             case "ai":
@@ -361,8 +359,6 @@ const processCommand = () => {
                                         room.context = newRoomContext;
                                         room.display = true;
 
-                                        proxy.$cyber.write(`Navigated to => ${room.name}`);
-                                        proxy.$cyber.write(`Context => ${room.context}`);
                                     } else {
                                         proxy.$cyber.write(`[warn] Failed to parse the new room information.`);
                                     }
@@ -385,10 +381,16 @@ const processCommand = () => {
                 room.context = context;
                 room.display = true;
 
-                proxy.$cyber.write(`room => ${room.name}`);
-
                 break;
 
+            case "loot":
+                const lootStore = useLootStore();
+                commandArgs[0] = "";
+
+                ai.generateLoot(commandArgs.join(" ").trim(), lootStore.lootableGearList).then((x) => {
+                    lootStore.arr.splice(0); // clear the array reactively
+                    lootStore.arr.push(...x); // push the new loot
+                });
 
             default:
                 // by default, we assume they've selected an enemy
