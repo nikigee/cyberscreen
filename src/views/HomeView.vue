@@ -8,6 +8,7 @@ import Room from '@/components/Room.vue';
 
 import { useAIStore } from '@/stores/datafort'
 import LootTable from '@/components/LootTable.vue';
+import CommandBar from '@/components/CommandBar.vue';
 
 const room = useAIStore().room;
 
@@ -44,6 +45,15 @@ onMounted(() => {
             </div>
         </div>
     </div>
+    <div class="container position-sticky bottom-0 pb-4 parser">
+        <CommandBar />
+    </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.parser{
+    z-index: 90;
+    left: 0;
+    right: 0;
+}
+</style>
