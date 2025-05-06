@@ -27,7 +27,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="container text-center pt-2 mb-5 main">
+    <div class="container text-center pt-2 main">
         <div class="row justify-content-center">
             <!-- For tracking enemies and party members in combat -->
             <div class="col-lg mb-3">
@@ -39,21 +39,63 @@ onMounted(() => {
             </div>
             <!-- Log for activity and the dice tray to display dice rolls -->
             <div class="col-lg-4">
-                <ActivityLog />
-                <LootTable class="mt-3" />
-                <DiceRoller class="mt-3" />
+                <div class="sticky-lg-top">
+                    <ActivityLog />
+                    <LootTable class="mt-3" />
+                    <DiceRoller class="mt-3" />
+                </div>
             </div>
         </div>
+
     </div>
-    <div class="container position-sticky bottom-0 pb-4 parser">
+    <div class="container sticky-bottom pb-4 pt-2 mt-3 parser">
+        <div class="d-flex footer justify-content-between align-items-center">
+            <div class="text-secondary microsystems text-start d-flex align-items-center"><i
+                    class="bi bi-triangle me-2"></i>
+                <div>
+                    <div>biomon systems online</div>
+                    <div>v2.3 - up to date</div>
+                </div>
+            </div>
+            <div class="text-primary watermark">2083 hades ฅ^•ﻌ•^ฅ</div>
+        </div>
         <CommandBar />
     </div>
 </template>
 
 <style lang="scss" scoped>
-.parser{
+.parser {
     z-index: 90;
     left: 0;
     right: 0;
+    background: linear-gradient(#0000006b, var(--bs-body-bg));
+}
+
+.microsystems {
+    font-size: 10px;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate3d(0, 0, 0, 0deg);
+    }
+
+    to {
+        transform: rotate3d(0, 1, 0, 360deg);
+    }
+}
+
+.footer {
+    perspective: 1000px;
+}
+
+.microsystems i {
+    font-size: 16px;
+    animation: spin 2s linear infinite;
+    transform-style: preserve-3d;
+}
+
+.watermark {
+    font-size: 12px;
 }
 </style>

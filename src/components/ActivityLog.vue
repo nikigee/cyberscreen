@@ -9,7 +9,7 @@
                 <span class="entry text-secondary">> {{ item.content }}</span>
             </div>
         </div>
-        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking"><span class="load">|</span> AI Processing...</div>
+        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking"><span class="load">|</span> Processing...</div>
     </div>
 </template>
 
@@ -51,6 +51,7 @@ export default {
 
 .console {
     overflow: auto;
+    background: var(--bs-body-bg);
 }
 
 @keyframes loading {

@@ -12,6 +12,11 @@ $secondary: $hcs-secondary;
 
 @import "/node_modules/bootstrap/scss/bootstrap";
 
+// ?? why
+.list-group-item-action {
+    color: var(--bs-list-group-color);
+}
+
 .header_text {
     font-family: "Roboto", sans-serif;
     font-weight: 900;

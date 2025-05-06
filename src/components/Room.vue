@@ -61,11 +61,11 @@ async function generateRoomDetails() {
     try {
         // Generate description if not available
         if (!room.description) {
-            const promptText = `Please write a vivid and immersive description of the location "${DOMPurify.sanitize(
+            const promptText = `Please write a 2nd person description of the location "${DOMPurify.sanitize(
                 room.name
             )}" for a Cyberpunk Red campaign. Keep it easy for a dm to narrate. Incorporate the following context: "${DOMPurify.sanitize(
                 room.context
-            )}". The description should be no more than two paragraphs. Each paragraph should be less than 70 words. Do not include a title or any additional headings.`;
+            )}". The description should be no more than one paragraphs which should be less than 100 words. Do not include a title or any additional headings. Use simple language.`;
 
             const response = await ai.prompt(promptText, true);
             const formattedDescription = `<p>${response.replace(/\n/g, '</p><p>')}</p>`;
