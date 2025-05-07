@@ -57,7 +57,7 @@ onMounted(() => {
                     <div>v2.3 - up to date</div>
                 </div>
             </div>
-            <div class="text-primary watermark">2083 hades ฅ^•ﻌ•^ฅ</div>
+            <div class="text-primary watermark text-end"><div>2083</div><div>hades ฅ^•ﻌ•^ฅ</div></div>
         </div>
         <CommandBar />
     </div>
