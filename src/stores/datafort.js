@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 
 export const useAIStore = defineStore('ai', () => {
     // AI related state and methods
-    const apiBaseUrl = "http://localhost:3000";
+    const apiBaseUrl = import.meta.env.VITE_API_URL;
     const thinking = ref(false);
 
     const prompt = async (userPrompt, smart = false, context = []) => {
