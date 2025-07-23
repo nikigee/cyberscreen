@@ -9,7 +9,7 @@ export const useCommandStore = defineStore('command', () => {
     const room = ai.room;
 
     // Load enemies from localStorage when the component is mounted
-    function loadEnemies(){
+    function loadEnemies() {
         let en;
         const storedEnemies = localStorage.getItem('saved_enemies');
         if (storedEnemies) {
@@ -26,7 +26,7 @@ export const useCommandStore = defineStore('command', () => {
     // Reactive state for new hostile input
     const command = ref('');
 
-    
+
 
     const quickSelect = (key) => {
         if (key) {
@@ -44,6 +44,26 @@ export const useCommandStore = defineStore('command', () => {
             document.querySelector(".command-input").focus();
         }
     };
+
+    const quickrolls = ref([]);
+
+    const updateRolls = () => {
+        const diceRegex = /\b(?:\d+)?d\d+(?:[+-]\d+)?\b/gi;
+        quickrolls.value = [];
+
+        enemies.value.forEach(v => {
+            v.inv.forEach(x => {
+                const matches = [...x.matchAll(diceRegex)];
+                matches.forEach(match => {
+                    const roll = match[0];
+                    if (!quickrolls.value.includes(roll)) {
+                        quickrolls.value.push(roll);
+                    }
+                });
+            });
+        });
+    };
+    updateRolls();
 
 
 
@@ -384,6 +404,7 @@ export const useCommandStore = defineStore('command', () => {
             }
 
             command.value = '';  // Clear the input field
+            updateRolls();
             saveEnemies();  // Save enemies to localStorage
         }
     };
@@ -391,6 +412,7 @@ export const useCommandStore = defineStore('command', () => {
     return {
         enemies,
         command,
+        quickrolls,
         processCommand,
         quickSelect
     };

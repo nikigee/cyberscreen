@@ -36,10 +36,20 @@
                     <p class="text-muted text-start m-0 py-2">...feeling lucky?</p>
                 </li>
             </ul>
-            <p class="border text-muted">終了行</p>
+            <p class="border text-muted mb-2">終了行</p>
+            <div class="text-start d-flex mb-2">
+                <span v-for="quickroll in commandParser.quickrolls" class="border mx-1 px-2 quickroll" @click="$roll(quickroll)">{{ quickroll }}</span>
+            </div>
         </div>
     </div>
 </template>
+
+<script setup>
+import { useCommandStore } from '@/stores/commandStore';
+
+const commandParser = useCommandStore();
+
+</script>
 
 <script>
 export default {
@@ -79,5 +89,17 @@ export default {
     text-align: center;
     min-width: 30px;
     font-size: large;
+}
+
+.quickroll{
+    color: var(--bs-primary);
+    border-color: var(--bs-primary) !important;
+    cursor: pointer;
+    user-select: none;
+}
+
+.quickroll:hover{
+    color: white;
+    border-color: white !important;
 }
 </style>
