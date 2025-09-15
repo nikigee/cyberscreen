@@ -7,7 +7,7 @@
 			<div class="d-flex justify-content-between mt-1">
 				<!-- Left side -->
 				<div>
-					<span>[ status: {{ getStatus(entity) }} ]</span>
+					<span>[ status: {{ getStatus(entity) }} ] </span>
 					<div class="fw-bold text-uppercase">{{ entity.name }}</div>
 
 					<div v-if="entity.notes.length > 0" class="text-muted">
@@ -21,9 +21,11 @@
 					<div v-if="entity.inv.length > 0">
 						<span class="text-muted">equipment:</span> {{ entity.inv.join(", ") }}
 					</div>
+					<div v-if="entity.friendly" class="text-secondary friendly">// FRIENDLY</div>
 				</div>
 			</div>
-			<div class="mt-1" style="overflow: hidden;" :style="'visibility:' + (shouldDisplay(percentage(entity)) ? 'visible' : 'hidden') + ';'">
+			<div class="mt-1" style="overflow: hidden;"
+				:style="'visibility:' + (shouldDisplay(percentage(entity)) ? 'visible' : 'hidden') + ';'">
 				<div class="bg-secondary bar" :style="'width: ' + percentage(entity) + '%;'" style="height: 1px;">
 				</div>
 			</div>
@@ -63,5 +65,9 @@ export default {
 <style lang="scss" scoped>
 .bar {
 	transition: 1s ease-out;
+}
+
+.friendly{
+	font-size: 0.8rem;
 }
 </style>

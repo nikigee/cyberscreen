@@ -41,6 +41,9 @@ onMounted(() => {
             <div class="col-lg-4">
                 <div class="sticky-lg-top">
                     <ActivityLog />
+                    <!-- <div class="d-flex mt-2">
+                        <button class="btn btn-outline-primary" type="button"><i class="bi bi-three-dots-vertical"></i> menu</button>
+                    </div> -->
                     <LootTable class="mt-3" />
                     <DiceRoller class="mt-3" />
                 </div>

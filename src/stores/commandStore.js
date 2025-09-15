@@ -8,12 +8,12 @@ export const useCommandStore = defineStore('command', () => {
 
     const room = ai.room;
 
-    // Load enemies from localStorage when the component is mounted
-    function loadEnemies() {
+    // Load entities from localStorage when the component is mounted
+    function loadEntities() {
         let en;
-        const storedEnemies = localStorage.getItem('saved_enemies');
-        if (storedEnemies) {
-            en = new Map(JSON.parse(storedEnemies));
+        const storedEntities = localStorage.getItem('saved_entities');
+        if (storedEntities) {
+            en = new Map(JSON.parse(storedEntities));
         } else {
             en = new Map();
         }
@@ -21,7 +21,7 @@ export const useCommandStore = defineStore('command', () => {
     }
 
     // Reactive state for hostiles
-    const enemies = ref(loadEnemies());
+    const entities = ref(loadEntities());
 
     // Reactive state for new hostile input
     const command = ref('');
@@ -51,7 +51,7 @@ export const useCommandStore = defineStore('command', () => {
         const diceRegex = /\b(?:\d+)?d\d+(?:[+-]\d+)?\b/gi;
         quickrolls.value = [];
 
-        enemies.value.forEach(v => {
+        entities.value.forEach(v => {
             v.inv.forEach(x => {
                 const matches = [...x.matchAll(diceRegex)];
                 matches.forEach(match => {
@@ -68,10 +68,10 @@ export const useCommandStore = defineStore('command', () => {
 
 
     const genID = () => {
-        return ((new Date()).getTime() + enemies.value.size).toString(36).slice(5);
+        return ((new Date()).getTime() + entities.value.size).toString(36).slice(5);
     }
 
-    const addEntity = (name = "Enemy", hp = 30, ac = 10) => {
+    const addEntity = (name = "Entity", hp = 30, ac = 10) => {
         const id = genID();
 
         const data = {
@@ -81,20 +81,21 @@ export const useCommandStore = defineStore('command', () => {
             currentHP: Number(hp),
             ac: ac,
             notes: [],
-            inv: []
+            inv: [],
+            friendly: false
         };
 
-        enemies.value.set(id, data);
+        entities.value.set(id, data);
     };
 
-    const saveEnemies = () => {
-        localStorage.setItem("saved_enemies", JSON.stringify(Array.from(enemies.value.entries())));
+    const saveEntities = () => {
+        localStorage.setItem("saved_entities", JSON.stringify(Array.from(entities.value.entries())));
     };
 
     // Access the global instance to call this.$md
     const { proxy } = getCurrentInstance();
 
-    // for processing commands on a selected enemy
+    // for processing commands on a selected entity
     const processSelectCommand = (commandArgs, selected) => {
         switch (commandArgs[1]) {
             case "max": case "heal":
@@ -102,6 +103,10 @@ export const useCommandStore = defineStore('command', () => {
                 selected.currentHP = selected.maxHP;
 
                 proxy.$cyber.write(`${selected.name} (${selected.id}) fully healed to ${selected.maxHP} hp`);
+                break;
+
+            case "friendly":
+                selected.friendly = !selected.friendly;
                 break;
 
             case "notes": case "note":
@@ -144,12 +149,12 @@ export const useCommandStore = defineStore('command', () => {
                     let copy = JSON.parse(JSON.stringify(selected));
                     copy.id = genID(); // set new id
 
-                    enemies.value.set(copy.id, copy);
+                    entities.value.set(copy.id, copy);
                 }
 
                 break;
             case "remove": case "delete":
-                enemies.value.delete(selected.id);
+                entities.value.delete(selected.id);
 
                 break;
 
@@ -193,21 +198,21 @@ export const useCommandStore = defineStore('command', () => {
     }
 
     const parseSelected = (input) => {
-        const selectedEnemies = new Set();  // Use a Set to avoid duplicates
+        const selectedEntities = new Set();  // Use a Set to avoid duplicates
 
         input.trim().split(",").forEach(v => {
             const trimmedValue = v.trim();
-            const enemy = enemies.value.get(trimmedValue);
-            if (enemy) {
-                selectedEnemies.add(enemy);
+            const entity = entities.value.get(trimmedValue);
+            if (entity) {
+                selectedEntities.add(entity);
             }
         });
 
-        return Array.from(selectedEnemies);  // Convert Set back to an array
+        return Array.from(selectedEntities);  // Convert Set back to an array
     }
 
 
-    // Function to add new hostile to the list
+    // Function to add new entity to the list
     const processCommand = () => {
         if (command.value.trim() !== '') {
 
@@ -215,7 +220,7 @@ export const useCommandStore = defineStore('command', () => {
             const commandArgs = command.value.match(/(?:[^\s"]+|"[^"]*")+/g).map(arg => arg.replace(/"/g, ''));
 
             switch (commandArgs[0].toLowerCase()) {
-                case "enemy":
+                case "entity":
                     switch (commandArgs[1]) {
                         case "add":
                             if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
@@ -228,9 +233,13 @@ export const useCommandStore = defineStore('command', () => {
                         case "remove":
                             if (commandArgs[2] !== "") {
                                 if (commandArgs[2] === "all") {
-                                    enemies.value.clear();
+                                    entities.value.forEach((v, k) => {
+                                        // remove every non-friendly entity
+                                        if(v.friendly == false)
+                                            entities.value.delete(k);
+                                    });
                                 } else {
-                                    enemies.value.delete(commandArgs[2]);
+                                    entities.value.delete(commandArgs[2]);
                                 }
                             }
                         default:
@@ -392,7 +401,7 @@ export const useCommandStore = defineStore('command', () => {
                     });
 
                 default:
-                    // by default, we assume they've selected an enemy
+                    // by default, we assume they've selected an entity
 
                     const selected = parseSelected(commandArgs[0]);
 
@@ -405,12 +414,12 @@ export const useCommandStore = defineStore('command', () => {
 
             command.value = '';  // Clear the input field
             updateRolls();
-            saveEnemies();  // Save enemies to localStorage
+            saveEntities();  // Save entities to localStorage
         }
     };
 
     return {
-        enemies,
+        entities,
         command,
         quickrolls,
         processCommand,

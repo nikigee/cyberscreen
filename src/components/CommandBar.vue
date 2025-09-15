@@ -20,3 +20,9 @@ const processCommand = () => {
     return commandParser.processCommand();
 };
 </script>
+
+<style lang="css" scoped>
+.command-input, .btn {
+    border-radius: 5px;
+}
+</style>
