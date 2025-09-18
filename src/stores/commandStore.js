@@ -2,9 +2,11 @@ import { ref, getCurrentInstance } from 'vue';
 import { defineStore } from 'pinia';
 import { useAIStore } from '@/stores/datafort';
 import { useLootStore } from '@/stores/stores';
+import { useMagicDice } from './mdStore';
 
 export const useCommandStore = defineStore('command', () => {
     const ai = useAIStore();
+    const { md, cyberlog, roll } = useMagicDice();
 
     const room = ai.room;
 
@@ -55,9 +57,9 @@ export const useCommandStore = defineStore('command', () => {
             v.inv.forEach(x => {
                 const matches = [...x.matchAll(diceRegex)];
                 matches.forEach(match => {
-                    const roll = match[0];
-                    if (!quickrolls.value.includes(roll)) {
-                        quickrolls.value.push(roll);
+                    const rolledDice = match[0];
+                    if (!quickrolls.value.includes(rolledDice)) {
+                        quickrolls.value.push(rolledDice);
                     }
                 });
             });
@@ -82,6 +84,10 @@ export const useCommandStore = defineStore('command', () => {
             ac: ac,
             notes: [],
             inv: [],
+            init: {
+                v: 0,
+                score: 0
+            },
             friendly: false
         };
 
@@ -90,6 +96,7 @@ export const useCommandStore = defineStore('command', () => {
 
     const saveEntities = () => {
         localStorage.setItem("saved_entities", JSON.stringify(Array.from(entities.value.entries())));
+        console.log("saved entity list");
     };
 
     // Access the global instance to call this.$md
@@ -102,7 +109,7 @@ export const useCommandStore = defineStore('command', () => {
                 // heal fully
                 selected.currentHP = selected.maxHP;
 
-                proxy.$cyber.write(`${selected.name} (${selected.id}) fully healed to ${selected.maxHP} hp`);
+                cyberlog.write(`${selected.name} (${selected.id}) fully healed to ${selected.maxHP} hp`);
                 break;
 
             case "friendly":
@@ -116,12 +123,12 @@ export const useCommandStore = defineStore('command', () => {
 
                         selected.notes = []; // clear notes
 
-                        proxy.$cyber.write(`${selected.name} (${selected.id}) ${count} note(s) cleared`);
+                        cyberlog.write(`${selected.name} (${selected.id}) ${count} note(s) cleared`);
                     } else {
                         let text = commandArgs.slice(2).join(" ");
                         selected.notes.push(text);
 
-                        proxy.$cyber.write(`${selected.name} (${selected.id}) note => ${text}`);
+                        cyberlog.write(`${selected.name} (${selected.id}) note => ${text}`);
                     }
                 }
 
@@ -138,7 +145,7 @@ export const useCommandStore = defineStore('command', () => {
 
                 break;
 
-            case "copy":
+            case "copy": case "cp":
                 let times = 1;
                 if (commandArgs[2]) {
                     if (!isNaN(Number(commandArgs[2])))
@@ -153,7 +160,7 @@ export const useCommandStore = defineStore('command', () => {
                 }
 
                 break;
-            case "remove": case "delete":
+            case "remove": case "delete": case "rm":
                 entities.value.delete(selected.id);
 
                 break;
@@ -161,10 +168,18 @@ export const useCommandStore = defineStore('command', () => {
             case "roll":
                 let text = commandArgs.slice(2).join(" ");
 
-                proxy.$cyber.write(`${selected.name} (${selected.id}) rolls ${text}`);
+                cyberlog.write(`${selected.name} (${selected.id}) rolls ${text}`);
 
-                proxy.$roll(text);
+                roll(text);
 
+                break;
+            case "init": case "initiative":
+                if (commandArgs[2]) {
+                    const initScore = Number(commandArgs[2]);
+                    if (!isNaN(initScore)) {
+                        selected.init.score = initScore;
+                    }
+                }
                 break;
             default:
                 // add / remove hp
@@ -173,8 +188,8 @@ export const useCommandStore = defineStore('command', () => {
 
                 // dice roll support
                 if (/^-?(\d+)?d\d+([+-]\d+)?$/.test(commandArgs[1])) {
-                    const roll = proxy.$roll(commandArgs[1]);
-                    value = roll.total;
+                    const rolledDice = roll(commandArgs[1]);
+                    value = rolledDice.total;
                 }
 
                 if (isNaN(value)) {
@@ -183,13 +198,13 @@ export const useCommandStore = defineStore('command', () => {
 
                 if (commandArgs[2]) {
                     if (Math.sign(value) === -1) {
-                        proxy.$cyber.write(`${commandArgs[2]} dealt ${value * -1} damage to ${selected.name} (${selected.id})`);
+                        cyberlog.write(`${commandArgs[2]} dealt ${value * -1} damage to ${selected.name} (${selected.id})`);
                     } else {
-                        proxy.$cyber.write(`${commandArgs[2]} healed ${selected.name} (${selected.id}) by ${value} points`);
+                        cyberlog.write(`${commandArgs[2]} healed ${selected.name} (${selected.id}) by ${value} points`);
                     }
                 }
 
-                proxy.$cyber.write(`${selected.name} (${selected.id}) hp: ${selected.currentHP} -> ${selected.currentHP + value} (${value})`);
+                cyberlog.write(`${selected.name} (${selected.id}) hp: ${selected.currentHP} -> ${selected.currentHP + value} (${value})`);
 
 
                 selected.currentHP += value;
@@ -235,7 +250,7 @@ export const useCommandStore = defineStore('command', () => {
                                 if (commandArgs[2] === "all") {
                                     entities.value.forEach((v, k) => {
                                         // remove every non-friendly entity
-                                        if(v.friendly == false)
+                                        if (v.friendly == false)
                                             entities.value.delete(k);
                                     });
                                 } else {
@@ -249,18 +264,18 @@ export const useCommandStore = defineStore('command', () => {
                 case "roll":
                     commandArgs[0] = "" // remove the roll part
 
-                    proxy.$roll(commandArgs.join(" ").trim());
+                    roll(commandArgs.join(" ").trim());
                     break;
                 case "log":
                     switch (commandArgs[1]) {
                         case "clear":
-                            proxy.$cyber.clear(); // clear log
+                            cyberlog.clear(); // clear log
 
                             break;
                         default:
                             commandArgs[0] = "";
 
-                            proxy.$cyber.write("[LOG] " + commandArgs.join(" ").trim());
+                            cyberlog.write("[LOG] " + commandArgs.join(" ").trim());
 
                             break;
                     }
@@ -281,7 +296,7 @@ export const useCommandStore = defineStore('command', () => {
 
                             ai.prompt(commandArgs[2], smart)
                                 .then((r) => {
-                                    proxy.$cyber.write(`[AI] ${r}`);
+                                    cyberlog.write(`[AI] ${r}`);
                                 });
 
                             break;
@@ -311,11 +326,11 @@ export const useCommandStore = defineStore('command', () => {
                         // set to true to refresh
                         room.enhance = true;
 
-                        proxy.$cyber.write(`room objective changed => ${room.in_depth.objective ? room.in_depth.objective : "No objective"}`);
+                        cyberlog.write(`room objective changed => ${room.in_depth.objective ? room.in_depth.objective : "No objective"}`);
                         break;
                     } else if (commandArgs[1] == "add") {
                         if (!room.description) {
-                            proxy.$cyber.write(`[warn] Can't follow up if there is no room.`);
+                            cyberlog.write(`[warn] Can't follow up if there is no room.`);
                         } else {
                             const prevContext = [{ role: "assistant", content: room.description }]; // compile context
 
@@ -336,11 +351,11 @@ export const useCommandStore = defineStore('command', () => {
                         break;
                     } else if (commandArgs[1] == "navigate") {
                         if (!room.name) {
-                            proxy.$cyber.write(`[warn] Can't navigate if there is no current room.`);
+                            cyberlog.write(`[warn] Can't navigate if there is no current room.`);
                         } else {
                             const destination = commandArgs[2];
                             if (!destination) {
-                                proxy.$cyber.write(`[warn] Please specify a destination to navigate to.`);
+                                cyberlog.write(`[warn] Please specify a destination to navigate to.`);
                             } else {
                                 const prevContext = [{ role: "assistant", content: room.description }];
 
@@ -368,12 +383,12 @@ export const useCommandStore = defineStore('command', () => {
                                             room.display = true;
 
                                         } else {
-                                            proxy.$cyber.write(`[warn] Failed to parse the new room information.`);
+                                            cyberlog.write(`[warn] Failed to parse the new room information.`);
                                         }
                                     })
                                     .catch((error) => {
                                         console.error('Error during AI prompt:', error);
-                                        proxy.$cyber.write(`[error] Failed to navigate to a new room.`);
+                                        cyberlog.write(`[error] Failed to navigate to a new room.`);
                                     });
                             }
                         }
@@ -423,7 +438,8 @@ export const useCommandStore = defineStore('command', () => {
         command,
         quickrolls,
         processCommand,
-        quickSelect
+        quickSelect,
+        saveEntities
     };
 
 })

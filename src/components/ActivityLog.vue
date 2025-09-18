@@ -2,44 +2,35 @@
     <div class="text-start">
         <div class="bg-secondary text-dark px-2">CONSOLE</div>
         <div style="height: 17vh; min-height: 160px;" class="border border-secondary py-1 console">
-            <div v-if="$cyber.log.length === 0">
+            <div v-if="cyberlog.log.length === 0">
                 <span class="entry text-muted">> cyber log start</span>
             </div>
-            <div v-for="item in $cyber.log" :key="item.id">
+            <div v-for="item in cyberlog.log" :key="item.id">
                 <span class="entry text-secondary">> {{ item.content }}</span>
             </div>
         </div>
-        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking"><span class="load">|</span> Processing...</div>
+        <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking"><span class="load">|</span>
+            Processing...</div>
     </div>
 </template>
 
 <script setup>
-const ai = useAIStore();
-
-</script>
-
-<script>
 import { useAIStore } from '@/stores/datafort';
-import { nextTick } from 'vue';
+import { useMagicDice } from '@/stores/mdStore';
+import { nextTick, watch } from 'vue';
 
-export default {
-    watch: {
-        '$cyber.log': {
-            handler() {
-                nextTick(() => {
-                    this.scroll();
-                });
-            },
-            deep: true, // Watch for changes inside the array
-        }
-    },
-    methods: {
-        scroll() {
-            const container = document.querySelector("div.console");
-            container.scrollTo(0, container.scrollHeight);
-        }
-    }
-}
+const ai = useAIStore();
+const { cyberlog } = useMagicDice();
+
+
+// auto scroll function
+watch(cyberlog, () => {
+    nextTick(() => {
+        const container = document.querySelector("div.console");
+        container.scrollTo(0, container.scrollHeight);
+    });
+});
+
 </script>
 
 <style lang="scss" scoped>

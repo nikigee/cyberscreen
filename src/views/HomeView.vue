@@ -9,6 +9,7 @@ import Room from '@/components/Room.vue';
 import { useAIStore } from '@/stores/datafort'
 import LootTable from '@/components/LootTable.vue';
 import CommandBar from '@/components/CommandBar.vue';
+import InitMenu from '@/components/InitMenu.vue';
 
 const room = useAIStore().room;
 
@@ -41,9 +42,15 @@ onMounted(() => {
             <div class="col-lg-4">
                 <div class="sticky-lg-top">
                     <ActivityLog />
-                    <!-- <div class="d-flex mt-2">
-                        <button class="btn btn-outline-primary" type="button"><i class="bi bi-three-dots-vertical"></i> menu</button>
-                    </div> -->
+                    <div class="d-flex mt-2">
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false"><i class="bi bi-three-dots-vertical"></i>
+                            menu</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#initmenu"><i
+                                        class="bi bi-filter me-2"></i> Initiative</a></li>
+                        </ul>
+                    </div>
                     <LootTable class="mt-3" />
                     <DiceRoller class="mt-3" />
                 </div>
@@ -60,10 +67,15 @@ onMounted(() => {
                     <div>v2.3 - up to date</div>
                 </div>
             </div>
-            <div class="text-primary watermark text-end"><div>2083</div><div>hades ฅ^•ﻌ•^ฅ</div></div>
+            <div class="text-primary watermark text-end">
+                <div>2083</div>
+                <div>hades ฅ^•ﻌ•^ฅ</div>
+            </div>
         </div>
         <CommandBar />
     </div>
+    <InitMenu />
+
 </template>
 
 <style lang="scss" scoped>

@@ -1,4 +1,8 @@
+import { create, all } from 'mathjs';
+
 export const magicDice = (() => {
+    const math = create(all);
+
     function MapToObj(strMap) {
         let obj = {};
         for (let [k, v] of strMap) {
@@ -45,11 +49,18 @@ export const magicDice = (() => {
     const diceHistory = []; // array for storing previous dice rolls
     const Dice = (() => {
         class SingleDice {
-            constructor(string = "d20") {
-                this.string = string.toLowerCase(); // the string value of the dice roll
-                this.list = []; // list of dice rolls
-                this.stats = SingleDice.cvt(string.toLowerCase()); // the iterator, face, etc.
-                this.roll(); // roll numbers
+            constructor(string = "d20", data) {
+                if (data) {
+                    this.string = data.string;
+                    this.list = data.list;
+                    this.stats = data.stats;
+                }
+                else {
+                    this.string = string.toLowerCase(); // the string value of the dice roll
+                    this.list = []; // list of dice rolls
+                    this.stats = SingleDice.cvt(string.toLowerCase()); // the iterator, face, etc.
+                    this.roll(); // roll numbers
+                }
             }
             static cvt(diceRoll) {
                 diceRoll = diceRoll.toLowerCase();
@@ -103,14 +114,18 @@ export const magicDice = (() => {
         }
 
         class diceRoll {
-            constructor(dice = "d20", opts = {}) {
-                const { x = document.body.clientWidth / 2 - 225, y = 150 } = opts;
-                this.pos = {
-                    x,
-                    y,
-                };
-                this.dice = dice.toLowerCase();
-                this.roll();
+            constructor(dice = "d20", diceRoll) {
+                if (diceRoll) {
+                    // construct from dice object
+                    this.dice = diceRoll.dice;
+                    this.list = [];
+                    diceRoll.list.forEach((v, i) => {
+                        this.list[i] = new SingleDice(undefined, v);
+                    });
+                } else {
+                    this.dice = dice.toLowerCase();
+                    this.roll();
+                }
             }
             generateList() {
                 const regexp = /\d*d\d+(?:->-*\d+)*/g; // used to detect dice rolls
@@ -139,7 +154,7 @@ export const magicDice = (() => {
                 const re = /(?:(?:^|[-+_*/])(?:\s*-?\d+(\.\d+)?(?:[eE][+-]?\d+)?\s*))+$/;
 
                 if (re.test(this.compText))
-                    return Number(eval(text));
+                    return math.evaluate(text);
             }
             get compText() {
                 let text = this.dice;
@@ -149,12 +164,9 @@ export const magicDice = (() => {
                 return text;
             }
             get total() {
-                const re = /(?:(?:^|[-+_*/])(?:\s*-?\d+(\.\d+)?(?:[eE][+-]?\d+)?\s*))+$/;
 
-                if (re.test(this.compText))
-                    return Number(eval(this.compText));
-                else
-                    return 0;
+                return math.evaluate(this.compText);
+
             }
             roll() {
                 try {
@@ -198,9 +210,13 @@ export const magicDice = (() => {
                     if (!mute) {
                         diceHistory.push(dice);
                         dice.show();
+                        if (localStorage) {
+                            localStorage.setItem("last_roll", JSON.stringify(dice));
+                        }
                     }
                     return dice;
                 } catch (err) {
+                    diceHistory.splice(diceHistory.length - 1, 1);
                     console.error(err);
                 }
             }
@@ -209,19 +225,6 @@ export const magicDice = (() => {
             }
             static diceObj(string) {
                 return new SingleDice(string);
-            }
-            static gfx_dice(arg, x, y) {
-                try {
-                    const magicRoll = new diceRoll(arg, {
-                        x: x,
-                        y: y,
-                    }); // the dice roll
-                    return magicRoll.render();
-                } catch (err) {
-                    return console.error(
-                        `Something went wrong while rolling the dice! (${err})`
-                    );
-                }
             }
         }
         return diceRoll;
@@ -299,6 +302,7 @@ export const magicDice = (() => {
                     range = "10 feet",
                     roll = "0d4",
                     url = "https://dnd5e.fandom.com/wiki/" + name.replace(/ /g, "_"),
+                    prepared = false
                 } = props;
                 this.name = name;
                 if (!isNaN(level)) {
@@ -311,6 +315,7 @@ export const magicDice = (() => {
                 this.concentration = concentration;
                 this.school = school;
                 this.description = description;
+                this.prepared = prepared;
                 this.components =
                     typeof components != "string" ? components.join(" ") : components;
                 if (!isNaN(duration)) {
@@ -340,6 +345,13 @@ export const magicDice = (() => {
             }
             get wiki() {
                 window.open(this.url);
+            }
+            get id() {
+                return this.name
+                    .toLowerCase()            // Convert to lowercase
+                    .replace(/[^a-z0-9 ]/g, '') // Remove special characters
+                    .trim()                   // Remove whitespace from start/end
+                    .replace(/\s+/g, '-');    // Replace spaces with hyphens
             }
             get x() {
                 console.log("\n" + this.name.toUpperCase());
@@ -391,14 +403,20 @@ export const magicDice = (() => {
             this.classData = parent.player_class;
             this.lvl = parent.lvl;
             this.inspiration = parent.inspiration;
+            this.quick_rolls = parent.quick_rolls;
+            this.theme = parent.theme;
             //this.statsData = parent.stats;
             this.statsData = {
                 save_throws: parent.stats.save_throws,
+                new_save_throws: parent.stats.new_save_throws,
                 ability: parent.stats.ability,
                 inspiration: parent.stats.inspiration,
                 misc_prof: parent.stats.misc_prof,
                 misc_notes: parent.stats.misc_notes,
-                skill_modifiers: parent.stats.skill_modifiers
+                skill_modifiers: parent.stats.skill_modifiers,
+                initiative: parent.stats.initiative,
+                passive_perception_mod: parent.stats.passive_perception_mod,
+                speed: parent.stats.speed
             }
             this.healthData = {
                 maxHP: parent.health.maxHP,
@@ -433,18 +451,22 @@ export const magicDice = (() => {
     const Load = (() => {
         const Loadf = {
             deSer: function (objData) {
-                var restored = objData;
+                let restored = objData;
                 // looks a bit ugly copying the code but it's gotta be since JSON don't save methods
-                for (var property in restored.magicData.spells) {
-                    if (restored.magicData.spells.hasOwnProperty(property)) {
-                        var spell = restored.magicData.spells[property]
-                        restored.magicData.spells[property] = new Spell(spell);
+                if (restored.magicData) {
+                    for (var property in restored.magicData.spells) {
+                        if (restored.magicData.spells.hasOwnProperty(property)) {
+                            var spell = restored.magicData.spells[property]
+                            restored.magicData.spells[property] = new Spell(spell);
+                        }
                     }
                 }
-                for (var property in restored.invData.backpack) {
-                    if (restored.invData.backpack.hasOwnProperty(property)) {
-                        var item = restored.invData.backpack[property]
-                        restored.invData.backpack[property] = new Item(item);
+                if (restored.invData) {
+                    for (var property in restored.invData.backpack) {
+                        if (restored.invData.backpack.hasOwnProperty(property)) {
+                            var item = restored.invData.backpack[property]
+                            restored.invData.backpack[property] = new Item(item);
+                        }
                     }
                 }
                 return new Player(restored);
@@ -456,14 +478,21 @@ export const magicDice = (() => {
                     localStorage.charList = JSON.stringify(list);
                     console.log(`${ID} is gone, bye bye`);
                 } catch (err) {
-                    console.log(err);
+                    console.error(err);
                 }
             },
-            restoreFromObj: function (characterData) {
+            restoreFromObj: function (characterData, setTheme = true) {
                 try {
-                    magicHandler.managed_players.push(this.deSer(characterData));
+                    magicHandler.managed_players[0] = this.deSer(characterData);
 
-                    console.log("You can now access this character by simply typing 'ply' into this console.");
+                    // set / reset theme
+                    if (setTheme) {
+                        if (characterData.theme && characterData.theme !== "default") {
+                            document.documentElement.setAttribute("data-theme", characterData.theme);
+                        } else {
+                            document.documentElement.removeAttribute("data-theme");
+                        }
+                    }
                 } catch (err) {
                     console.log(err);
                 }
@@ -598,11 +627,9 @@ export const magicDice = (() => {
                 const {
                     parent = undefined,
                     spells = {},
-                    preparedSpells = []
                 } = props;
                 this.spells = objToMap(spells);
                 this.parent = parent;
-                this.preparedSpells = preparedSpells;
             }
             get spcMod() {
                 return this.parent.player_class.spcMod;
@@ -631,6 +658,13 @@ export const magicDice = (() => {
                 spell.x;
                 return console.log("%cNew Spell Added!", "color: limegreen");
             }
+            addJSON(data) {
+                const obj = new Spell(data);
+                this.spells.set(obj.name, obj);
+                this.sort();
+                obj.x;
+                return obj;
+            }
             sort() {
                 const spellArray = Array.from(this.spells);
                 spellArray.sort((a, b) => {
@@ -644,40 +678,6 @@ export const magicDice = (() => {
                     return;
                 } else {
                     return this.spells.get(spell).cast();
-                }
-            }
-            prepare_remove(spell) {
-                try {
-                    if (!spell && this.preparedSpells.indexOf(spell.name) == -1) {
-                        throw new Error("You didn't specify a valid spell");
-                    }
-                    const index = this.preparedSpells.indexOf(spell.name);
-                    return this.preparedSpells.splice(index, 1);
-                } catch (err) {
-                    MagicUI.alert(err, {
-                        type: "error"
-                    }); // log error
-                }
-            }
-            prepare(spell) {
-                try {
-                    if (!spell) {
-                        throw new Error("You didn't specify a valid spell");
-                    } else if (this.preparedSpells.indexOf(spell.name) > -1) {
-                        throw new Error("You already prepared this spell!");
-                    }
-                    const maxPrepared = this.Mod + this.parent.lvl;
-                    if (maxPrepared > this.preparedSpells.length) {
-                        this.preparedSpells.push(spell.name);
-                        console.log(`'${spell.name}' has been prepared successfuly! (${this.preparedSpells.length} / ${maxPrepared})`);
-                        return true;
-                    } else {
-                        throw new Error("You can't prepare any more spells!");
-                    }
-                } catch (err) {
-                    MagicUI.alert(err, {
-                        type: "error"
-                    }); // log error
                 }
             }
             list(args = {}) {
@@ -700,6 +700,15 @@ export const magicDice = (() => {
                         console.log("- %c" + v.name + " %c(" + v.level + " Level)", "color: " + prep_clr, "color: #03a9f4");
                     }
                 })
+            }
+            getPreparedSpells() {
+                let prepared = [];
+                this.spells.forEach((s) => {
+                    if (s.prepared == true) {
+                        prepared.push(s);
+                    }
+                });
+                return prepared;
             }
         }
         class Inventory {
@@ -789,7 +798,7 @@ export const magicDice = (() => {
         class Render {
             constructor(props = {}) {
                 const {
-                    avatar = "./src/img/render_default.jpg",
+                    avatar = "",
                     banner = {
                         url: '',
                         position: 'center'
@@ -806,7 +815,7 @@ export const magicDice = (() => {
                     hitdie = parent.lvl + parent.player_class.hitdie,
                     maxHP = new Dice(`${new Dice(parent.player_class.hitdie).max} + ${(parent.lvl - 1) + parent.player_class.hitdie}->${parent.stats.ability_mod.cnst}`).total,
                     currentHP = maxHP,
-                    defaultAC = 10 + parent.stats.ability_mod.dex,
+                    defaultAC = "10 + dex",
                     currentAC = defaultAC
                 } = props;
                 this.maxHP = maxHP;
@@ -817,6 +826,10 @@ export const magicDice = (() => {
                 this.parent = parent;
             }
             add(amt) {
+                if (!amt) {
+                    return this.currentHP;
+                }
+
                 /* i love it when javascript changes my numbers to strings for no reason :) */
                 this.currentHP = Number(this.currentHP);
                 this.maxHP = Number(this.maxHP);
@@ -862,7 +875,46 @@ export const magicDice = (() => {
             constructor(props = {}) {
                 const {
                     parent = undefined,
-                    save_throws = parent.player_class.save_throws,
+                    save_throws = [],
+                    // placeholder for now, eventually want to get rid of the old save_throws system bc its annoying
+                    new_save_throws = {
+                        str: {
+                            name: "Strength",
+                            raw: "str",
+                            proficent: false,
+                            custom: 0
+                        },
+                        dex: {
+                            name: "Dexterity",
+                            raw: "dex",
+                            proficent: false,
+                            custom: 0
+                        },
+                        cnst: {
+                            name: "Constitution",
+                            raw: "cnst",
+                            proficent: false,
+                            custom: 0
+                        },
+                        int: {
+                            name: "Intelligence",
+                            raw: "int",
+                            proficent: false,
+                            custom: 0
+                        },
+                        wis: {
+                            name: "Wisdom",
+                            raw: "wis",
+                            proficent: false,
+                            custom: 0
+                        },
+                        chr: {
+                            name: "Charisma",
+                            raw: "chr",
+                            proficent: false,
+                            custom: 0
+                        }
+                    },
                     marks = [],
                     expert = [],
                     ability = genABS(27),
@@ -875,6 +927,8 @@ export const magicDice = (() => {
                         armr: parent.player_class.start_prof.armr
                     },
                     misc_notes = "",
+                    initiative = "dex",
+                    passive_perception_mod = "",
                     skill_modifiers = {
                         acrobatics: {
                             name: "Acrobatics",
@@ -988,6 +1042,7 @@ export const magicDice = (() => {
                 } = props;
                 this.parent = parent;
                 this.save_throws = save_throws;
+                this.new_save_throws = new_save_throws;
                 this.marks = marks;
                 this.expert = expert;
                 this.ability = ability;
@@ -996,13 +1051,12 @@ export const magicDice = (() => {
                 this.misc_notes = misc_notes;
                 this.speed = speed;
                 this.skill_modifiers = skill_modifiers;
+                this.initiative = initiative;
+                this.passive_perception_mod = passive_perception_mod;
             }
             get prof() {
                 return serProf(this.parent.lvl);
             }
-            get initiative() {
-                return this.ability_mod.dex;
-            };
             get passive_perception() {
                 return 10 + this.skills.perception;
             }
@@ -1138,6 +1192,11 @@ export const magicDice = (() => {
                             if (this.save_throws.includes(property)) {
                                 skill += this.prof;
                             }
+                            // if there's a custom modifier, add that too
+                            if (this.new_save_throws[property].custom) {
+                                if (!isNaN(this.new_save_throws[property].custom))
+                                    skill += this.new_save_throws[property].custom;
+                            }
                             sthrows.set(property, skill);
                         }
                     }
@@ -1169,7 +1228,9 @@ export const magicDice = (() => {
                     magicData = {},
                     statsData = {},
                     invData = {},
-                    renderData = {}
+                    renderData = {},
+                    quick_rolls = [],
+                    theme = "default"
                 } = props;
                 statsData.parent = this;
                 healthData.parent = this;
@@ -1184,8 +1245,16 @@ export const magicDice = (() => {
                 this.magic = new Magic(magicData);
                 this.inv = new Inventory(invData);
                 this.render = new Render(renderData);
+                for (let index = 0; index < quick_rolls.length; index++) {
+                    const element = quick_rolls[index];
+                    if (typeof element == "string") {
+                        quick_rolls[index] = { v: element };
+                    }
+                }
+                this.quick_rolls = quick_rolls;
+                this.theme = theme;
             }
-            get d20() {
+            d20() {
                 return Dice.r("d20", true);
             }
             get id() {
@@ -1264,9 +1333,15 @@ export const magicDice = (() => {
                 downloadAnchorNode.click();
                 downloadAnchorNode.remove();
             }
-            enableShortcuts(keybinds = {}) {
-                // print commands
-                console.log("nothing");
+            parse(input) {
+                // turns out magic dice can handle all the parsing including ability mods and such
+                // for now this works but maybe the parsing of player specific info should be divorced from the dice and back to this class
+                // but for now its fine since magic dice will only ever have one player loaded at a time
+                if (input) {
+                    return Dice.x(input, true).total;
+                } else {
+                    return 0;
+                }
             }
         }
         return Player;
@@ -1281,9 +1356,13 @@ export const magicDice = (() => {
                 charArray = JSON.parse(localStorage["charList"]);
 
             // the actual saving
-            charArray[id] = new Save(playerObj);
-            localStorage["charList"] = JSON.stringify(charArray);
-            console.log("Saved as '" + id + "'");
+            try {
+                charArray[id] = new Save(playerObj);
+                localStorage["charList"] = JSON.stringify(charArray);
+                console.log("Saved as '" + id + "'");
+            } catch (e) {
+                alert("Something went wrong while saving, perhaps you are over the size limit? (5mb): " + e);
+            }
         } else {
             console.log("Save Error");
         }
