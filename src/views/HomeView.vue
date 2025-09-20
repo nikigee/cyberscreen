@@ -10,6 +10,7 @@ import { useAIStore } from '@/stores/datafort'
 import LootTable from '@/components/LootTable.vue';
 import CommandBar from '@/components/CommandBar.vue';
 import InitMenu from '@/components/InitMenu.vue';
+import EditEntity from '@/components/EditEntity.vue';
 
 const room = useAIStore().room;
 
@@ -75,6 +76,8 @@ onMounted(() => {
         <CommandBar />
     </div>
     <InitMenu />
+    
+    <EditEntity />
 
 </template>
 

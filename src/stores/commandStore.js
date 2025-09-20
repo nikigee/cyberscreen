@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { useAIStore } from '@/stores/datafort';
 import { useLootStore } from '@/stores/stores';
 import { useMagicDice } from './mdStore';
+import * as bootstrap from 'bootstrap'; // Import Bootstrap JS
 
 export const useCommandStore = defineStore('command', () => {
     const ai = useAIStore();
@@ -38,6 +39,7 @@ export const useCommandStore = defineStore('command', () => {
 
     // Reactive state for hostiles
     const entities = ref(loadEntities());
+    const editEntityID = ref('');
 
     // Reactive state for new hostile input
     const command = ref('');
@@ -112,9 +114,6 @@ export const useCommandStore = defineStore('command', () => {
         localStorage.setItem("saved_entities", JSON.stringify(Array.from(entities.value.entries())));
         console.log("saved entity list");
     };
-
-    // Access the global instance to call this.$md
-    const { proxy } = getCurrentInstance();
 
     // for processing commands on a selected entity
     const processSelectCommand = (commandArgs, selected) => {
@@ -194,6 +193,14 @@ export const useCommandStore = defineStore('command', () => {
                         selected.init.score = initScore;
                     }
                 }
+                break;
+            case "edit":
+                editEntityID.value = selected.id;
+
+                // open bootstrap modal
+                const modal = new bootstrap.Modal("#entityEdit");
+                modal.show();
+
                 break;
             default:
                 // add / remove hp
@@ -453,6 +460,7 @@ export const useCommandStore = defineStore('command', () => {
         quickrolls,
         processCommand,
         quickSelect,
+        editEntityID,
         saveEntities
     };
 
