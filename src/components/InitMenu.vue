@@ -2,7 +2,7 @@
     <CcModal title="Initiative List" idd="initmenu">
         <div class="modal-body">
             <div>
-                <div class="p-1 d-flex entry" v-for="entity in list">
+                <div class="p-1 d-flex entry" v-for="[key, entity] in entities">
                     <div>
                         <div>> {{ entity.name }} <span :class="getFriendly(entity.friendly)">
                                 ({{ entity.id }})</span></div>
@@ -19,8 +19,6 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline-primary" @click="convertEntities(entities)"><i
-                    class="bi bi-sort-down-alt me-1"></i> Sort</button>
             <button class="btn btn-outline-primary" data-bs-dismiss="modal" @click="save()"><i
                     class="bi bi-floppy me-1"></i>Save & Close</button>
         </div>
@@ -36,9 +34,6 @@ import { useMagicDice } from '@/stores/mdStore';
 const { roll, cyberlog } = useMagicDice();
 
 const { entities, saveEntities } = useCommandStore();
-
-const list = ref([]);
-convertEntities(entities, false);
 
 function formattedScore(score) {
     let sign = "+";
