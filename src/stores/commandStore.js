@@ -10,12 +10,26 @@ export const useCommandStore = defineStore('command', () => {
 
     const room = ai.room;
 
-    // Load entities from localStorage when the component is mounted
+    class Entity {
+        constructor(props = {}) {
+            this.id = props.id || '';
+            this.name = props.name || 'Entity';
+            this.maxHP = Number(props.maxHP ?? 30);
+            this.currentHP = Number(props.currentHP ?? this.maxHP);
+            this.ac = Number(props.ac ?? 10);
+            this.notes = Array.isArray(props.notes) ? props.notes : [];
+            this.inv = Array.isArray(props.inv) ? props.inv : [];
+            this.init = props.init || { v: 0, score: 0 };
+            this.friendly = !!props.friendly;
+        }
+    }
+
     function loadEntities() {
         let en;
         const storedEntities = localStorage.getItem('saved_entities');
         if (storedEntities) {
-            en = new Map(JSON.parse(storedEntities));
+            const arr = JSON.parse(storedEntities);
+            en = new Map(arr.map(([k, v]) => [k, new Entity(v)]));
         } else {
             en = new Map();
         }
@@ -91,7 +105,7 @@ export const useCommandStore = defineStore('command', () => {
             friendly: false
         };
 
-        entities.value.set(id, data);
+        entities.value.set(id, new Entity(data));
     };
 
     const saveEntities = () => {
