@@ -6,7 +6,7 @@
                 <li v-for="(d, index) in md.diceHistory" v-show="index >= (md.diceHistory.length - 1)"
                     class="list-group-item list-group-item-action text-white">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div @click="$roll(d.dice)">
+                        <div @click="roll(d.dice)">
                             <p class="mb-0 text-muted text-start">{{ d.dice }}</p>
                             <div class="d-flex align-items-center">
                                 <div class="pe-3 text-center">
@@ -39,7 +39,7 @@
             <p class="border text-muted mb-2">終了行</p>
             <div class="text-start d-flex mb-2">
                 <span v-for="quickroll in commandParser.quickrolls" class="border mx-1 px-2 quickroll"
-                    @click="$roll(quickroll)">{{ quickroll }}</span>
+                    @click="roll(quickroll)">{{ quickroll }}</span>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@
 import { useCommandStore } from '@/stores/commandStore';
 import { useMagicDice } from '@/stores/mdStore';
 
-const { md } = useMagicDice();
+const { md, roll } = useMagicDice();
 const commandParser = useCommandStore();
 
 </script>
