@@ -256,7 +256,7 @@ export const useCommandStore = defineStore('command', () => {
             const commandArgs = command.value.match(/(?:[^\s"]+|"[^"]*")+/g).map(arg => arg.replace(/"/g, ''));
 
             switch (commandArgs[0].toLowerCase()) {
-                case "entity":
+                case "entity": case "enemy": case "en":
                     switch (commandArgs[1]) {
                         case "add":
                             if (commandArgs[5] !== "" && !isNaN(Number(commandArgs[5]))) {
