@@ -5,6 +5,63 @@ import { useLootStore } from '@/stores/stores';
 import { useMagicDice } from './mdStore';
 import * as bootstrap from 'bootstrap'; // Import Bootstrap JS
 
+const COMMAND_DEFS = {
+    help: { desc: 'Show available commands' },
+    entity: {
+        desc: 'Manage entities',
+        sub: {
+            add: { desc: 'Add entity: entity add "name" hp ac count' },
+            remove: { desc: 'Remove entity: entity remove [id|all]' }
+        }
+    },
+    enemy: { alias: 'entity' },
+    en: { alias: 'entity' },
+    roll: { desc: 'Roll dice: roll 1d20+5' },
+    log: {
+        desc: 'Manage log',
+        sub: {
+            clear: { desc: 'Clear log' }
+        }
+    },
+    ai: {
+        desc: 'AI commands',
+        sub: {
+            prompt: { desc: 'Send AI prompt: ai prompt "text" [smart=true/false]' }
+        }
+    },
+    room: {
+        desc: 'Manage room',
+        sub: {
+            clear: { desc: 'Clear room' },
+            more: { desc: 'Toggle room enhance' },
+            mission: { desc: 'Set objective: room mission "objective"' },
+            objective: { alias: 'mission' },
+            add: { desc: 'Add details: room add "instructions" [word count]' },
+            navigate: { desc: 'Navigate: room navigate "destination"' }
+        }
+    },
+    loot: { desc: 'Generate loot: loot "prompt"' }
+};
+
+const ENTITY_CMDS = {
+    max: { desc: 'Heal fully' },
+    heal: { alias: 'max' },
+    friendly: { desc: 'Toggle friendly' },
+    notes: { desc: 'Add/clear notes: notes [text|clear]' },
+    note: { alias: 'notes' },
+    inv: { desc: 'Add/clear inventory: inv [text|clear]' },
+    weapon: { alias: 'inv' },
+    copy: { desc: 'Copy entity: copy [times]' },
+    cp: { alias: 'copy' },
+    remove: { desc: 'Remove entity' },
+    delete: { alias: 'remove' },
+    rm: { alias: 'remove' },
+    roll: { desc: 'Roll dice: roll "dice"' },
+    init: { desc: 'Set initiative: init [score]' },
+    initiative: { alias: 'init' },
+    edit: { desc: 'Open edit modal' }
+};
+
 export const useCommandStore = defineStore('command', () => {
     const ai = useAIStore();
     const { md, cyberlog, roll } = useMagicDice();
@@ -83,8 +140,97 @@ export const useCommandStore = defineStore('command', () => {
 
     // Reactive state for new hostile input
     const command = ref('');
+    const commandHistory = ref([]);
+    const historyIndex = ref(-1);
 
+    const getTokens = (str) => {
+        const regex = /(?:[^\s"]+|"[^"]*")+/g;
+        const matches = str.match(regex);
+        if (!matches) return [];
 
+        const endsWithSpace = str.endsWith(' ');
+        const tokens = matches.map(arg => arg.replace(/"/g, ''));
+        if (endsWithSpace) tokens.push('');
+        return tokens;
+    };
+
+    const currentSuggestions = computed(() => {
+        if (!command.value.trim() && !command.value.endsWith(' ')) return [];
+
+        const tokens = getTokens(command.value);
+        if (tokens.length === 0) return [];
+
+        const lastToken = tokens[tokens.length - 1].toLowerCase();
+        const isFirstToken = tokens.length === 1;
+        let suggestions = [];
+
+        if (isFirstToken) {
+            Object.entries(COMMAND_DEFS).forEach(([key, val]) => {
+                if (!val.alias && key.startsWith(lastToken)) {
+                    suggestions.push({ text: key, description: val.desc });
+                }
+            });
+
+            const prefixParts = lastToken.split(',');
+            const currentPart = prefixParts.pop();
+            const prefix = prefixParts.length > 0 ? prefixParts.join(',') + ',' : '';
+
+            entities.value.forEach((entity, id) => {
+                if (id.toLowerCase().startsWith(currentPart)) {
+                    suggestions.push({ text: prefix + id, description: `Entity: ${entity.name}` });
+                }
+            });
+        } else {
+            const firstToken = tokens[0].toLowerCase();
+            const baseCmd = COMMAND_DEFS[firstToken]?.alias ? COMMAND_DEFS[COMMAND_DEFS[firstToken].alias] : COMMAND_DEFS[firstToken];
+
+            if (baseCmd && baseCmd.sub && tokens.length === 2) {
+                Object.entries(baseCmd.sub).forEach(([key, val]) => {
+                    if (!val.alias && key.startsWith(lastToken)) {
+                        suggestions.push({ text: key, description: val.desc });
+                    }
+                });
+            }
+
+            const isEntitySelection = firstToken.split(',').every(id => entities.value.has(id.trim()));
+            if (isEntitySelection && tokens.length === 2) {
+                Object.entries(ENTITY_CMDS).forEach(([key, val]) => {
+                    if (!val.alias && key.startsWith(lastToken)) {
+                        suggestions.push({ text: key, description: val.desc });
+                    }
+                });
+            }
+        }
+        return suggestions;
+    });
+
+    const applySuggestion = (suggestionText) => {
+        const lastSpace = command.value.lastIndexOf(' ');
+        if (lastSpace === -1) {
+            command.value = suggestionText + ' ';
+        } else {
+            command.value = command.value.substring(0, lastSpace + 1) + suggestionText + ' ';
+        }
+    };
+
+    const navigateHistory = (dir) => {
+        if (commandHistory.value.length === 0) return;
+
+        if (dir === -1) { // Up
+            if (historyIndex.value < commandHistory.value.length - 1) {
+                historyIndex.value++;
+                command.value = commandHistory.value[commandHistory.value.length - 1 - historyIndex.value];
+            }
+        } else if (dir === 1) { // Down
+            if (historyIndex.value > 0) {
+                historyIndex.value--;
+                command.value = commandHistory.value[commandHistory.value.length - 1 - historyIndex.value];
+            } else if (historyIndex.value === 0) {
+                historyIndex.value = -1;
+                command.value = '';
+            }
+        }
+    };
 
     const quickSelect = (key) => {
         if (key) {
@@ -292,10 +438,28 @@ export const useCommandStore = defineStore('command', () => {
     const processCommand = () => {
         if (command.value.trim() !== '') {
 
+            // History
+            commandHistory.value.push(command.value);
+            historyIndex.value = -1;
+
             // Split command by spaces, but keep quoted strings together
             const commandArgs = command.value.match(/(?:[^\s"]+|"[^"]*")+/g).map(arg => arg.replace(/"/g, ''));
 
             switch (commandArgs[0].toLowerCase()) {
+                case "help":
+                    cyberlog.write("=== Available Commands ===");
+                    Object.entries(COMMAND_DEFS).forEach(([key, val]) => {
+                        if (!val.alias) {
+                            let msg = `- ${key}: ${val.desc}`;
+                            if (val.sub) {
+                                msg += ` (Subcommands: ${Object.keys(val.sub).join(', ')})`;
+                            }
+                            cyberlog.write(msg);
+                        }
+                    });
+                    cyberlog.write("=== Entity Commands (usage: [id] [command]) ===");
+                    cyberlog.write(Object.entries(ENTITY_CMDS).filter(([k, v]) => !v.alias).map(([k, v]) => k).join(", "));
+                    break;
                 case "entity": case "enemy": case "en":
                     switch (commandArgs[1]) {
                         case "add":
@@ -497,6 +661,9 @@ export const useCommandStore = defineStore('command', () => {
     return {
         entities,
         command,
+        currentSuggestions,
+        applySuggestion,
+        navigateHistory,
         quickrolls,
         processCommand,
         quickSelect,
