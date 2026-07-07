@@ -26,7 +26,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import CcModal from './ui/ccModal.vue';
 import { useCommandStore } from '@/stores/commandStore';
 import { useMagicDice } from '@/stores/mdStore';
@@ -59,18 +58,6 @@ function rollInit(entity) {
 function save() {
     saveEntities();
 }
-
-function convertEntities(map, shouldSort = true) {
-    let sortedList = Array.from(map.entries()) // convert Map → array of [key, value]
-        .map(([key, value]) => ({ ...value })); // return objects
-    if (shouldSort) {
-        sortedList = sortedList.sort((a, b) => b.init.v - a.init.v) // sort DESC by .init.v
-        console.log("list sorted: ", sortedList);
-    }
-
-    list.value = sortedList;
-}
-
 
 </script>
 

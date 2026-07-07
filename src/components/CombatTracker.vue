@@ -1,8 +1,11 @@
 <template>
     <h2 class="header_text">敵HOSTILES</h2>
     <ul class="list-group list-group-flush">
-        <li v-for="[key, entity] in entities" :key="key" class="list-group-item list-group-item-action"
-            v-bind:class="{ 'list-group-item-primary': entity.currentHP <= 0 }" @click="quickSelect(key)">
+        <li v-for="[key, entity] in entities" :key="key" class="list-group-item list-group-item-action" v-bind:class="{
+            'list-group-item-primary': entity.currentHP <= 0,
+            'selected friendly': commandParser.turnEntityId === key && entity.friendly,
+            'selected enemy': commandParser.turnEntityId === key && !entity.friendly
+        }" @click="quickSelect(key)">
             <Entity :entity="entity" :entityKey="key" />
         </li>
         <!-- If no entities -->
@@ -33,3 +36,19 @@ const quickSelect = (key) => {
     return commandParser.quickSelect(key);
 };
 </script>
+
+
+<style lang="css" scoped>
+.selected {
+    border-left: solid 3px;
+}
+
+.selected.friendly{
+    border-left-color: var(--bs-secondary);
+}
+
+.selected.enemy{
+    border-left-color: var(--bs-primary);
+}
+
+</style>

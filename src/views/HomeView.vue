@@ -11,6 +11,7 @@ import LootTable from '@/components/LootTable.vue';
 import CommandBar from '@/components/CommandBar.vue';
 import InitMenu from '@/components/InitMenu.vue';
 import EditEntity from '@/components/EditEntity.vue';
+import InitWheel from '@/components/InitWheel.vue';
 
 const room = useAIStore().room;
 
@@ -37,6 +38,7 @@ onMounted(() => {
                 <div class="mb-5" v-if="room.display">
                     <Room />
                 </div>
+                <InitWheel />
                 <CombatTracker />
             </div>
             <!-- Log for activity and the dice tray to display dice rolls -->
