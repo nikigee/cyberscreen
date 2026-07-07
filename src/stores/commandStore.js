@@ -1,4 +1,4 @@
-import { ref, getCurrentInstance } from 'vue';
+import { ref, computed, watch, getCurrentInstance } from 'vue';
 import { defineStore } from 'pinia';
 import { useAIStore } from '@/stores/datafort';
 import { useLootStore } from '@/stores/stores';
@@ -40,6 +40,46 @@ export const useCommandStore = defineStore('command', () => {
     // Reactive state for hostiles
     const entities = ref(loadEntities());
     const editEntityID = ref('');
+
+    const sortedEntities = computed(() => {
+        return Array.from(entities.value.values()).sort((a, b) => {
+            if (b.init.v !== a.init.v) return b.init.v - a.init.v;
+            return b.init.score - a.init.score;
+        });
+    });
+
+    const turnIndex = ref(0);
+
+    watch(sortedEntities, (newVal) => {
+        if (newVal.length === 0) {
+            turnIndex.value = 0;
+        } else if (turnIndex.value >= newVal.length) {
+            turnIndex.value = Math.max(0, newVal.length - 1);
+        }
+    }, { deep: true });
+
+    const nextTurn = () => {
+        if (sortedEntities.value.length > 0) {
+            turnIndex.value = (turnIndex.value + 1) % sortedEntities.value.length;
+        }
+    };
+
+    const prevTurn = () => {
+        if (sortedEntities.value.length > 0) {
+            turnIndex.value = (turnIndex.value - 1 + sortedEntities.value.length) % sortedEntities.value.length;
+        }
+    };
+
+    const resetTurn = () => {
+        turnIndex.value = 0;
+    };
+
+    const turnEntityId = computed(() => {
+        if (sortedEntities.value.length > 0 && turnIndex.value >= 0 && turnIndex.value < sortedEntities.value.length) {
+            return sortedEntities.value[turnIndex.value].id;
+        }
+        return null;
+    });
 
     // Reactive state for new hostile input
     const command = ref('');
@@ -461,7 +501,13 @@ export const useCommandStore = defineStore('command', () => {
         processCommand,
         quickSelect,
         editEntityID,
-        saveEntities
+        saveEntities,
+        sortedEntities,
+        turnIndex,
+        turnEntityId,
+        nextTurn,
+        prevTurn,
+        resetTurn
     };
 
 })

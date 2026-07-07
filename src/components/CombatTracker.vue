@@ -43,12 +43,11 @@ const quickSelect = (key) => {
     border-left: solid 3px;
 }
 
-.selected.friendly{
-    border-left-color: var(--bs-secondary);
+.selected.friendly {
+    border-left-color: var(--bs-secondary); 
 }
 
-.selected.enemy{
-    border-left-color: var(--bs-primary);
+.selected.enemy {
+    border-left-color: var(--bs-primary); 
 }
-
 </style>

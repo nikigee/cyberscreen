@@ -1,44 +1,15 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useCommandStore } from '@/stores/commandStore';
 
 const commandStore = useCommandStore();
 
-const sortedEntities = computed(() => {
-  return Array.from(commandStore.entities.values()).sort((a, b) => {
-    // D&D 5e: highest initiative first
-    // Fallback to initiative score if rolls tie
-    if (b.init.v !== a.init.v) return b.init.v - a.init.v;
-    return b.init.score - a.init.score;
-  });
-});
+const sortedEntities = computed(() => commandStore.sortedEntities);
+const currentIndex = computed(() => commandStore.turnIndex);
 
-const currentIndex = ref(0);
-
-// Keep the current index within bounds if entities are added/removed
-watch(sortedEntities, (newVal) => {
-  if (newVal.length === 0) {
-    currentIndex.value = 0;
-  } else if (currentIndex.value >= newVal.length) {
-    currentIndex.value = Math.max(0, newVal.length - 1);
-  }
-}, { deep: true });
-
-const nextTurn = () => {
-  if (sortedEntities.value.length > 0) {
-    currentIndex.value = (currentIndex.value + 1) % sortedEntities.value.length;
-  }
-};
-
-const prevTurn = () => {
-  if (sortedEntities.value.length > 0) {
-    currentIndex.value = (currentIndex.value - 1 + sortedEntities.value.length) % sortedEntities.value.length;
-  }
-};
-
-const resetTurn = () => {
-  currentIndex.value = 0;
-};
+const nextTurn = () => commandStore.nextTurn();
+const prevTurn = () => commandStore.prevTurn();
+const resetTurn = () => commandStore.resetTurn();
 
 const getEntity = (offset) => {
   const N = sortedEntities.value.length;
