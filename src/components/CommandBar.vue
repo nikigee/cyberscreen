@@ -4,8 +4,8 @@
             <div class="input-group pt-3 position-relative">
                 <input type="text" class="form-control command-input" placeholder="Enter command... (type 'help')"
                     v-model="commandParser.command" @keyup.enter="processCommand" @keydown.tab.prevent="handleTab"
-                    @keydown.up.prevent="navigateHistory(-1)" @keydown.down.prevent="navigateHistory(1)"
-                    ref="cmdInput" />
+                    @keydown.up.prevent="navigateHistory(-1)" @keydown.down.prevent="navigateHistory(1)" ref="cmdInput"
+                    autocorrect="off" autocapitalize="none" spellcheck="false" autocomplete="off" />
                 <button class="btn btn-outline-primary" @click="processCommand">Run</button>
 
                 <div v-if="suggestions.length > 0"
