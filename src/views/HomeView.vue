@@ -7,7 +7,6 @@ import DiceRoller from '@/components/DiceRoller.vue';
 import Room from '@/components/Room.vue';
 
 import { useAIStore } from '@/stores/datafort'
-import LootTable from '@/components/LootTable.vue';
 import CommandBar from '@/components/CommandBar.vue';
 import InitMenu from '@/components/InitMenu.vue';
 import EditEntity from '@/components/EditEntity.vue';
@@ -54,7 +53,6 @@ onMounted(() => {
                                         class="bi bi-filter me-2"></i> Initiative</a></li>
                         </ul>
                     </div>
-                    <LootTable class="mt-3" />
                     <DiceRoller class="mt-3" />
                 </div>
             </div>

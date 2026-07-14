@@ -1,7 +1,6 @@
 import { ref, computed, watch, getCurrentInstance } from 'vue';
 import { defineStore } from 'pinia';
 import { useAIStore } from '@/stores/datafort';
-import { useLootStore } from '@/stores/stores';
 import { useMagicDice } from './mdStore';
 import * as bootstrap from 'bootstrap'; // Import Bootstrap JS
 
@@ -40,8 +39,7 @@ const COMMAND_DEFS = {
             add: { desc: 'Add details: room add "instructions" [word count]' },
             navigate: { desc: 'Navigate: room navigate "destination"' }
         }
-    },
-    loot: { desc: 'Generate loot: loot "prompt"' }
+    }
 };
 
 const ENTITY_CMDS = {
@@ -654,15 +652,6 @@ export const useCommandStore = defineStore('command', () => {
                     room.display = true;
 
                     break;
-
-                case "loot":
-                    const lootStore = useLootStore();
-                    commandArgs[0] = "";
-
-                    ai.generateLoot(commandArgs.join(" ").trim(), lootStore.lootableGearList).then((x) => {
-                        lootStore.arr.splice(0); // clear the array reactively
-                        lootStore.arr.push(...x); // push the new loot
-                    });
 
                 default:
                     // by default, we assume they've selected an entity
