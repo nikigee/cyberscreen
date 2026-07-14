@@ -20,7 +20,8 @@ const COMMAND_DEFS = {
     log: {
         desc: 'Manage log',
         sub: {
-            clear: { desc: 'Clear log' }
+            clear: { desc: 'Clear log' },
+            export: { desc: 'Export log to .log file' }
         }
     },
     ai: {
@@ -497,6 +498,28 @@ export const useCommandStore = defineStore('command', () => {
                             cyberlog.clear(); // clear log
 
                             break;
+                        case "export": {
+                            const logLines = cyberlog.log.map(item => {
+                                if (item.isDateMarker) {
+                                    return item.content;
+                                } else {
+                                    const date = new Date(item.timestamp || item.id);
+                                    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                                    return `[${timeStr}] ${item.content}`;
+                                }
+                            });
+                            const blob = new Blob([logLines.join("\n")], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `cyberlog_export_${Date.now()}.log`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            cyberlog.write("Exported log to .log file");
+                            break;
+                        }
                         default:
                             commandArgs[0] = "";
 
@@ -504,6 +527,7 @@ export const useCommandStore = defineStore('command', () => {
 
                             break;
                     }
+                    break;
                 case "ai":
                     // commands relating to ai stuff
                     // any function call with proxy.$ai requires backend to be online

@@ -6,7 +6,8 @@
                 <span class="entry text-muted">> cyber log start</span>
             </div>
             <div v-for="item in cyberlog.log" :key="item.id">
-                <span class="entry text-secondary">> {{ item.content }}</span>
+                <div v-if="item.isDateMarker" class="entry text-muted my-1" style="font-size: small;">{{ item.content }}</div>
+                <span v-else class="entry text-secondary">> [{{ formatTime(item.timestamp || item.id) }}] {{ item.content }}</span>
             </div>
         </div>
         <div class="text-end text-secondary pt-1 processing" v-if="ai.thinking"><span class="load">|</span>
@@ -22,6 +23,11 @@ import { nextTick, watch } from 'vue';
 const ai = useAIStore();
 const { cyberlog } = useMagicDice();
 
+const formatTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+};
 
 // auto scroll function
 watch(cyberlog, () => {
